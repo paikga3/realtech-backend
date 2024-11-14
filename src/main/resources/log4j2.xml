@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration status="info" monitorInterval="30">
+    <properties>
+        <property name="LOG_FORMAT">[%threadId] %d{yyyy-MM-dd HH:mm:ss} %p %m%n</property>
+    </properties>
+
+    <Appenders>
+        <Console name="console" target="SYSTEM_OUT" follow="true">
+            <PatternLayout pattern="${LOG_FORMAT}" />
+        </Console>
+    </Appenders>
+
+    <loggers>
+        <!-- log4j2 -->
+        <logger name="log4jdbc.log4j2" level="info" additivity="false">
+            <appender-ref ref="console" />
+        </logger>
+        
+        <!-- QUERY LOG -->
+        <logger name="jdbc.sqlonly" additivity="false" level="off">
+            <appender-ref ref="console" />
+        </logger>
+
+        <!-- RESULTSET TABLE -->
+        <logger name="jdbc.resultsettable" additivity="false" level="off">
+            <appender-ref ref="console" />
+        </logger>
+
+         <!-- query + time -->
+        <logger name="jdbc.sqltiming" level="info"/>
+        
+         <!-- 전체 로그 ( 양 상당히 많아짐 ) -->
+        <logger name="jdbc.audit" level="off"/>
+        
+         <!-- resultsettable + resultset (parameter) -->
+        <logger name="jdbc.resultset" level="off"/>
+        
+        <!-- connection log -->
+        <logger name="jdbc.connection" level="off"/>
+        <root level="info" additivity="false">
+            <appender-ref ref="console"/>
+        </root>
+    </loggers>
+</configuration>

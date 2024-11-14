@@ -1,0 +1,26 @@
+server:
+  port: 7070
+spring:
+  application:
+    name: realtech
+  jpa.open-in-view: false
+  datasource:
+    jdbcUrl: jdbc:log4jdbc:mariadb://43.201.253.25:3306/realtech
+    username: realtech
+    password: tv1234
+    driverClassName: net.sf.log4jdbc.sql.jdbcapi.DriverSpy
+    connectionTimeout: 58000
+    maxLifetime: 580000
+    maximumPoolSize: 20
+    #leakDetectionThreshold: 20000
+  data:
+    jpa:
+      repositories:
+        bootstrap-mode: default # deferred, default, lazy - https://velog.io/@daoh98/SpringJPA-Redis-Repository-scan-%EB%AC%B8%EC%A0%9C
+  main:
+    allow-bean-definition-overriding: true
+#  session:
+#    store-type: redis
+
+
+  
