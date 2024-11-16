@@ -15,9 +15,9 @@ public class GalleryPostController {
     @Autowired
     private GalleryPostService galleryPostService;
     
-    @GetMapping("/api/gallery/posts")
-    public PagedResponse<GalleryPost> fetchGalleryPosts(FetchGalleryPostsParams rq) {
-        return galleryPostService.fetchGalleryPosts(rq);
+    @GetMapping("/api/gallery/post")
+    public PagedResponse<GalleryPost> fetchGalleryPost(FetchGalleryPostsParams rq) {
+        return galleryPostService.fetchGalleryPost(rq);
         
     }
     

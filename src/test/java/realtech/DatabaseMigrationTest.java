@@ -204,7 +204,9 @@ public class DatabaseMigrationTest {
         }
     }
     
-    
+    @Rollback(false)
+    @Transactional
+    @Test
     public void shouldMigrateDataFromOldToNewDatabase03() {
         List<G5WriteYbReservation01> list = g5WriteYbReservation01Repository.findByWrIsComment(0);
         SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss");
@@ -264,6 +266,26 @@ public class DatabaseMigrationTest {
             r.setName(g.getWrName());
             r.setViews(g.getWrHit());
             r.setCreatedAt(sdf.format(g.getWrDatetime()));
+            
+            
+            String content = g.getWrContent();
+            Document document = Jsoup.parse(content);
+
+            // img 태그를 모두 찾기
+            Elements imgTags = document.select("img");
+            
+            // img 태그의 src 속성을 변경
+            for (int i=0; i<imgTags.size(); i++) {
+                Element imgTag = imgTags.get(i);
+                String originalSrc = imgTag.attr("src"); // 기존 src 값
+                String newSrc = originalSrc.replace("http://www.xn--369an22at7ae6e24kqwke6h.kr", "https://realtech-board.s3.ap-northeast-2.amazonaws.com"); // 새 src 값
+                imgTag.attr("src", newSrc); // src 속성 업데이트
+            }
+
+            // 변경된 DOM을 다시 HTML 문자열로 출력
+            String updatedContent = document.html();
+            r.setContent(updatedContent);
+            
             ReservationInquiry ref = reservationInquiryRepository.save(r);
 
             
@@ -381,9 +403,7 @@ public class DatabaseMigrationTest {
     }
     
     
-    @Rollback(false)
-    @Transactional
-    @Test
+    
     public void shouldMigrateDataFromOldToNewDatabase05() {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss");
         List<G5WriteYbBoard02> list = g5WriteYbBoard02Repository.findByWrIsComment(0);

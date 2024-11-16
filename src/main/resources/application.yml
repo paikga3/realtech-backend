@@ -1,5 +1,8 @@
 server:
   port: 7070
+  tomcat:
+    relaxed-path-chars: '<,>,[,],^,`'
+    relaxed-query-chars: '<,>,[,],],^,`'
 spring:
   application:
     name: realtech

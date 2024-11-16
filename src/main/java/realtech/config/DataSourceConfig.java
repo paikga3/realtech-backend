@@ -12,7 +12,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
@@ -26,7 +25,6 @@ import com.zaxxer.hikari.HikariDataSource;
 @Configuration
 @EnableJpaRepositories(basePackages = "realtech.db", entityManagerFactoryRef = "entityManagerFactory", transactionManagerRef = "transactionManager")
 public class DataSourceConfig {
-	@Primary
     @Bean
     @Qualifier("dataSource")
     @ConfigurationProperties(prefix = "spring.datasource")
@@ -43,7 +41,6 @@ public class DataSourceConfig {
         return emf.createEntityManager();
     }
     
-    @Primary
     @Bean
     public LocalContainerEntityManagerFactoryBean entityManagerFactory() throws IOException {
         LocalContainerEntityManagerFactoryBean em = new LocalContainerEntityManagerFactoryBean();
@@ -65,11 +62,11 @@ public class DataSourceConfig {
         return em;
     }
 
-    @Primary
     @Bean
     public PlatformTransactionManager transactionManager() throws IOException {
         JpaTransactionManager transactionManager = new JpaTransactionManager();
         transactionManager.setEntityManagerFactory(entityManagerFactory().getObject());
         return transactionManager;
     }
+
 }

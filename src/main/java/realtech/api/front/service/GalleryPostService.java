@@ -17,7 +17,7 @@ public class GalleryPostService {
     @PersistenceContext(name = "entityManager")
     private EntityManager entityManager;
     
-    public PagedResponse<GalleryPost> fetchGalleryPosts(FetchGalleryPostsParams rq) {
+    public PagedResponse<GalleryPost> fetchGalleryPost(FetchGalleryPostsParams rq) {
         StringBuffer where = new StringBuffer();
         where.append(" from ").append(rq.getEntity()).append(" t ");
         where.append(" where 1=1 ");
