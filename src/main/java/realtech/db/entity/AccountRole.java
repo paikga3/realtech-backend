@@ -18,11 +18,8 @@ public class AccountRole implements Serializable {
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	private int id;
 
-	@Column(name="account_id")
-	private int accountId;
-
-	@Column(name="role_id")
-	private int roleId;
+	@Column(name="role_name")
+	private String roleName;
 
 	public AccountRole() {
 	}
@@ -35,20 +32,12 @@ public class AccountRole implements Serializable {
 		this.id = id;
 	}
 
-	public int getAccountId() {
-		return this.accountId;
+	public String getRoleName() {
+		return this.roleName;
 	}
 
-	public void setAccountId(int accountId) {
-		this.accountId = accountId;
-	}
-
-	public int getRoleId() {
-		return this.roleId;
-	}
-
-	public void setRoleId(int roleId) {
-		this.roleId = roleId;
+	public void setRoleName(String roleName) {
+		this.roleName = roleName;
 	}
 
 }

@@ -1,15 +1,22 @@
 package realtech.db.entity;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 import javax.persistence.Lob;
+import javax.persistence.ManyToOne;
 import javax.persistence.NamedQuery;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
@@ -68,7 +75,14 @@ public class G5WriteYbBoard02 implements Serializable {
 
 	@Column(name="wr_comment")
 	private int wrComment;
+	
+	@ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "wr_parent", insertable = false, updatable = false)
+    private G5WriteYbBoard02 parent;
 
+    @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<G5WriteYbBoard02> replies = new ArrayList<>();
+	
 	@Column(name="wr_comment_reply")
 	private String wrCommentReply;
 
@@ -87,7 +101,7 @@ public class G5WriteYbBoard02 implements Serializable {
 	private String wrFacebookUser;
 
 	@Column(name="wr_file")
-	private byte wrFile;
+	private int wrFile;
 
 	@Column(name="wr_good")
 	private int wrGood;
@@ -102,7 +116,7 @@ public class G5WriteYbBoard02 implements Serializable {
 	private String wrIp;
 
 	@Column(name="wr_is_comment")
-	private byte wrIsComment;
+	private int wrIsComment;
 
 	@Column(name="wr_last")
 	private String wrLast;
@@ -306,11 +320,11 @@ public class G5WriteYbBoard02 implements Serializable {
 		this.wrFacebookUser = wrFacebookUser;
 	}
 
-	public byte getWrFile() {
+	public int getWrFile() {
 		return this.wrFile;
 	}
 
-	public void setWrFile(byte wrFile) {
+	public void setWrFile(int wrFile) {
 		this.wrFile = wrFile;
 	}
 
@@ -346,11 +360,11 @@ public class G5WriteYbBoard02 implements Serializable {
 		this.wrIp = wrIp;
 	}
 
-	public byte getWrIsComment() {
+	public int getWrIsComment() {
 		return this.wrIsComment;
 	}
 
-	public void setWrIsComment(byte wrIsComment) {
+	public void setWrIsComment(int wrIsComment) {
 		this.wrIsComment = wrIsComment;
 	}
 
@@ -473,5 +487,29 @@ public class G5WriteYbBoard02 implements Serializable {
 	public void setWrTwitterUser(String wrTwitterUser) {
 		this.wrTwitterUser = wrTwitterUser;
 	}
+	
+	// 부모 게시물 설정
+    public void setParent(G5WriteYbBoard02 parent) {
+        this.parent = parent;
+    }
 
+    // 부모 게시물 가져오기
+    public G5WriteYbBoard02 getParent() {
+        return this.parent;
+    }
+
+    // 댓글 목록 가져오기
+    public List<G5WriteYbBoard02> getReplies() {
+        return this.replies;
+    }
+
+    public void addReply(G5WriteYbBoard02 reply) {
+        reply.setParent(this);
+        this.replies.add(reply);
+    }
+
+    public void removeReply(G5WriteYbBoard02 reply) {
+        reply.setParent(null);
+        this.replies.remove(reply);
+    }
 }

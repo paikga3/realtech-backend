@@ -102,7 +102,7 @@ public class G5WriteYbGallery01 implements Serializable {
 	private String wrIp;
 
 	@Column(name="wr_is_comment")
-	private byte wrIsComment;
+	private int wrIsComment;
 
 	@Column(name="wr_last")
 	private String wrLast;
@@ -346,7 +346,7 @@ public class G5WriteYbGallery01 implements Serializable {
 		this.wrIp = wrIp;
 	}
 
-	public byte getWrIsComment() {
+	public int getWrIsComment() {
 		return this.wrIsComment;
 	}
 

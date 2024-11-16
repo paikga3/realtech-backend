@@ -1,7 +1,14 @@
 package realtech.db.entity;
 
 import java.io.Serializable;
-import javax.persistence.*;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.NamedQuery;
+import javax.persistence.Table;
 
 
 /**
@@ -19,13 +26,6 @@ public class ReservationInquiry implements Serializable {
 	@Column(name="inquiry_id")
 	private int inquiryId;
 
-	@Lob
-	@Column(name="additional_info")
-	private String additionalInfo;
-
-	@Column(name="address_basic")
-	private String addressBasic;
-
 	@Column(name="address_detail")
 	private String addressDetail;
 
@@ -33,12 +33,14 @@ public class ReservationInquiry implements Serializable {
 	private String authorIp;
 
 	@Column(name="bracket_type")
-	private int bracketType;
+	private String bracketType;
 
 	@Column(name="braket_type_other")
 	private String braketTypeOther;
 
 	private String contact;
+
+	private String content;
 
 	@Column(name="created_at")
 	private String createdAt;
@@ -49,6 +51,9 @@ public class ReservationInquiry implements Serializable {
 	@Column(name="is_private")
 	private int isPrivate;
 
+	@Column(name="lot_address")
+	private String lotAddress;
+
 	private String name;
 
 	private String password;
@@ -56,11 +61,14 @@ public class ReservationInquiry implements Serializable {
 	@Column(name="postal_code")
 	private String postalCode;
 
+	@Column(name="road_address")
+	private String roadAddress;
+
 	@Column(name="settop_box_embed")
 	private int settopBoxEmbed;
 
 	@Column(name="tv_size")
-	private int tvSize;
+	private String tvSize;
 
 	@Column(name="tv_size_other")
 	private String tvSizeOther;
@@ -68,11 +76,11 @@ public class ReservationInquiry implements Serializable {
 	private int views;
 
 	@Column(name="wall_type")
-	private int wallType;
+	private String wallType;
 
 	@Column(name="wall_type_other")
 	private String wallTypeOther;
-
+	
 	public ReservationInquiry() {
 	}
 
@@ -82,22 +90,6 @@ public class ReservationInquiry implements Serializable {
 
 	public void setInquiryId(int inquiryId) {
 		this.inquiryId = inquiryId;
-	}
-
-	public String getAdditionalInfo() {
-		return this.additionalInfo;
-	}
-
-	public void setAdditionalInfo(String additionalInfo) {
-		this.additionalInfo = additionalInfo;
-	}
-
-	public String getAddressBasic() {
-		return this.addressBasic;
-	}
-
-	public void setAddressBasic(String addressBasic) {
-		this.addressBasic = addressBasic;
 	}
 
 	public String getAddressDetail() {
@@ -116,11 +108,11 @@ public class ReservationInquiry implements Serializable {
 		this.authorIp = authorIp;
 	}
 
-	public int getBracketType() {
+	public String getBracketType() {
 		return this.bracketType;
 	}
 
-	public void setBracketType(int bracketType) {
+	public void setBracketType(String bracketType) {
 		this.bracketType = bracketType;
 	}
 
@@ -138,6 +130,14 @@ public class ReservationInquiry implements Serializable {
 
 	public void setContact(String contact) {
 		this.contact = contact;
+	}
+
+	public String getContent() {
+		return this.content;
+	}
+
+	public void setContent(String content) {
+		this.content = content;
 	}
 
 	public String getCreatedAt() {
@@ -164,6 +164,14 @@ public class ReservationInquiry implements Serializable {
 		this.isPrivate = isPrivate;
 	}
 
+	public String getLotAddress() {
+		return this.lotAddress;
+	}
+
+	public void setLotAddress(String lotAddress) {
+		this.lotAddress = lotAddress;
+	}
+
 	public String getName() {
 		return this.name;
 	}
@@ -188,6 +196,14 @@ public class ReservationInquiry implements Serializable {
 		this.postalCode = postalCode;
 	}
 
+	public String getRoadAddress() {
+		return this.roadAddress;
+	}
+
+	public void setRoadAddress(String roadAddress) {
+		this.roadAddress = roadAddress;
+	}
+
 	public int getSettopBoxEmbed() {
 		return this.settopBoxEmbed;
 	}
@@ -196,11 +212,11 @@ public class ReservationInquiry implements Serializable {
 		this.settopBoxEmbed = settopBoxEmbed;
 	}
 
-	public int getTvSize() {
+	public String getTvSize() {
 		return this.tvSize;
 	}
 
-	public void setTvSize(int tvSize) {
+	public void setTvSize(String tvSize) {
 		this.tvSize = tvSize;
 	}
 
@@ -220,11 +236,11 @@ public class ReservationInquiry implements Serializable {
 		this.views = views;
 	}
 
-	public int getWallType() {
+	public String getWallType() {
 		return this.wallType;
 	}
 
-	public void setWallType(int wallType) {
+	public void setWallType(String wallType) {
 		this.wallType = wallType;
 	}
 

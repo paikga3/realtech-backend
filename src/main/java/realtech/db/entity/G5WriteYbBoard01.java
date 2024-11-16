@@ -87,7 +87,7 @@ public class G5WriteYbBoard01 implements Serializable {
 	private String wrFacebookUser;
 
 	@Column(name="wr_file")
-	private byte wrFile;
+	private int wrFile;
 
 	@Column(name="wr_good")
 	private int wrGood;
@@ -102,7 +102,7 @@ public class G5WriteYbBoard01 implements Serializable {
 	private String wrIp;
 
 	@Column(name="wr_is_comment")
-	private byte wrIsComment;
+	private int wrIsComment;
 
 	@Column(name="wr_last")
 	private String wrLast;
@@ -306,11 +306,11 @@ public class G5WriteYbBoard01 implements Serializable {
 		this.wrFacebookUser = wrFacebookUser;
 	}
 
-	public byte getWrFile() {
+	public int getWrFile() {
 		return this.wrFile;
 	}
 
-	public void setWrFile(byte wrFile) {
+	public void setWrFile(int wrFile) {
 		this.wrFile = wrFile;
 	}
 
@@ -346,11 +346,11 @@ public class G5WriteYbBoard01 implements Serializable {
 		this.wrIp = wrIp;
 	}
 
-	public byte getWrIsComment() {
+	public int getWrIsComment() {
 		return this.wrIsComment;
 	}
 
-	public void setWrIsComment(byte wrIsComment) {
+	public void setWrIsComment(int wrIsComment) {
 		this.wrIsComment = wrIsComment;
 	}
 

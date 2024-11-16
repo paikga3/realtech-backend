@@ -47,6 +47,8 @@ public class CustomerReview implements Serializable {
 
 	private String title;
 
+	private int views;
+
 	public CustomerReview() {
 	}
 
@@ -136,6 +138,14 @@ public class CustomerReview implements Serializable {
 
 	public void setTitle(String title) {
 		this.title = title;
+	}
+
+	public int getViews() {
+		return this.views;
+	}
+
+	public void setViews(int views) {
+		this.views = views;
 	}
 
 }

@@ -1,7 +1,14 @@
 package realtech.db.entity;
 
 import java.io.Serializable;
-import javax.persistence.*;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.NamedQuery;
+import javax.persistence.Table;
 
 
 /**
@@ -25,7 +32,6 @@ public class CeilingTvPost implements Serializable {
 	@Column(name="author_name")
 	private String authorName;
 
-	@Lob
 	private String content;
 
 	@Column(name="created_at")
@@ -39,6 +45,9 @@ public class CeilingTvPost implements Serializable {
 
 	@Column(name="editor_name")
 	private String editorName;
+
+	@Column(name="thumbnail_url")
+	private String thumbnailUrl;
 
 	private String title;
 
@@ -71,7 +80,7 @@ public class CeilingTvPost implements Serializable {
 		this.authorName = authorName;
 	}
 
-	public String getContent() {
+	public Object getContent() {
 		return this.content;
 	}
 
@@ -109,6 +118,14 @@ public class CeilingTvPost implements Serializable {
 
 	public void setEditorName(String editorName) {
 		this.editorName = editorName;
+	}
+
+	public String getThumbnailUrl() {
+		return this.thumbnailUrl;
+	}
+
+	public void setThumbnailUrl(String thumbnailUrl) {
+		this.thumbnailUrl = thumbnailUrl;
 	}
 
 	public String getTitle() {

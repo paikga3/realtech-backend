@@ -1,7 +1,14 @@
 package realtech.db.entity;
 
 import java.io.Serializable;
-import javax.persistence.*;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.NamedQuery;
+import javax.persistence.Table;
 
 
 /**
@@ -9,6 +16,7 @@ import javax.persistence.*;
  * 
  */
 @Entity
+@Table(name="notice")
 @NamedQuery(name="Notice.findAll", query="SELECT n FROM Notice n")
 public class Notice implements Serializable {
 	private static final long serialVersionUID = 1L;
@@ -24,7 +32,6 @@ public class Notice implements Serializable {
 	@Column(name="author_name")
 	private String authorName;
 
-	@Lob
 	private String content;
 
 	@Column(name="created_at")
@@ -40,6 +47,8 @@ public class Notice implements Serializable {
 	private String editorName;
 
 	private String title;
+
+	private int views;
 
 	public Notice() {
 	}
@@ -114,6 +123,14 @@ public class Notice implements Serializable {
 
 	public void setTitle(String title) {
 		this.title = title;
+	}
+
+	public int getViews() {
+		return this.views;
+	}
+
+	public void setViews(int views) {
+		this.views = views;
 	}
 
 }
