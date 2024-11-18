@@ -22,8 +22,11 @@ spring:
         bootstrap-mode: default # deferred, default, lazy - https://velog.io/@daoh98/SpringJPA-Redis-Repository-scan-%EB%AC%B8%EC%A0%9C
   main:
     allow-bean-definition-overriding: true
+
 #  session:
 #    store-type: redis
 
-
+aws:
+  access-key-id: AKIA2NOJF4NQEFLYAN7X
+  secret-access-key: 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
   
