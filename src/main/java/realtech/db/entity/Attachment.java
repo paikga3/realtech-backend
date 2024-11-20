@@ -1,14 +1,7 @@
 package realtech.db.entity;
 
 import java.io.Serializable;
-
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.NamedQuery;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 
 /**
@@ -16,7 +9,6 @@ import javax.persistence.Table;
  * 
  */
 @Entity
-@Table(name="attachment")
 @NamedQuery(name="Attachment.findAll", query="SELECT a FROM Attachment a")
 public class Attachment implements Serializable {
 	private static final long serialVersionUID = 1L;
@@ -28,6 +20,9 @@ public class Attachment implements Serializable {
 
 	@Column(name="display_filename")
 	private String displayFilename;
+
+	@Column(name="file_size_kb")
+	private int fileSizeKb;
 
 	@Column(name="ref_id")
 	private int refId;
@@ -55,6 +50,14 @@ public class Attachment implements Serializable {
 
 	public void setDisplayFilename(String displayFilename) {
 		this.displayFilename = displayFilename;
+	}
+
+	public int getFileSizeKb() {
+		return this.fileSizeKb;
+	}
+
+	public void setFileSizeKb(int fileSizeKb) {
+		this.fileSizeKb = fileSizeKb;
 	}
 
 	public int getRefId() {
