@@ -5,7 +5,7 @@ import java.util.List;
 import lombok.Data;
 
 @Data
-public class DomainVisitorStatsResponse {
-    private List<DomainVisitorStats> data;
+public class CommonStatsResponse {
     private int total;
+    private List<CommonStats> data;
 }

@@ -5,9 +5,9 @@ import lombok.Data;
 
 @AllArgsConstructor
 @Data
-public class DomainVisitorStats {
+public class CommonStats {
     private int rank; // 순위
-    private String domain; // 접속 도메인
+    private String category; // 카테고리
     private long visitorCount; // 접속자 수
     private double percentage; // 비율(%)
 }
