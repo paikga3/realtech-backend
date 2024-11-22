@@ -3,6 +3,7 @@ package realtech.api.front.service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import javax.persistence.EntityManager;
@@ -10,6 +11,7 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -24,6 +26,7 @@ import realtech.api.front.model.FetchGalleryPostsParams;
 import realtech.api.front.model.FileItem;
 import realtech.api.front.model.GalleryPost;
 import realtech.api.front.model.GalleryPostDetailData;
+import realtech.api.front.model.UpdateGalleryPostParams;
 import realtech.db.entity.Attachment;
 import realtech.db.entity.CeilingTvPost;
 import realtech.db.entity.WallTvPost;
@@ -31,6 +34,8 @@ import realtech.db.repository.AttachmentRepository;
 import realtech.db.repository.CeilingTvPostRepository;
 import realtech.db.repository.WallTvPostRepository;
 import realtech.util.AppUtils;
+import realtech.util.MimeTypeDetector;
+import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 
 @Service
 public class GalleryPostService {
@@ -101,19 +106,19 @@ public class GalleryPostService {
     
     
     
-    public GalleryPostDetailData getPostDetailByIdAndEntity(int id, String entity) {
+    public GalleryPostDetailData getPostDetailByIdAndEntity(int id, String entity, boolean isUpdateViewCount) {
 
         if ("WallTvPost".equals(entity)) {
-            return fetchWallTvPostById(id);
+            return fetchWallTvPostById(id, isUpdateViewCount);
         } else if ("CeilingTvPost".equals(entity)) {
-            return fetchCeilingTvPostById(id);
+            return fetchCeilingTvPostById(id, isUpdateViewCount);
         } else {
             throw new IllegalArgumentException("지원하지 않는 엔터티입니다: " + entity);
         }
     }
     
     
-    public GalleryPostDetailData fetchWallTvPostById(int id) {
+    public GalleryPostDetailData fetchWallTvPostById(int id, boolean isUpdateViewCount) {
         // 1. 게시글 조회
         Optional<WallTvPost> postOpt = wallTvPostRepository.findById(id);
         if (postOpt.isEmpty()) {
@@ -123,15 +128,34 @@ public class GalleryPostService {
         WallTvPost post = postOpt.get();
         
         // 2. 조회수 증가
-        post.setViews(post.getViews() + 1);
-        wallTvPostRepository.save(post); // 조회수 업데이트
+        if (isUpdateViewCount) {
+            post.setViews(post.getViews() + 1);
+            wallTvPostRepository.save(post); // 조회수 업데이트
+        }
         
         // 3. 첨부파일 조회
         List<FileItem> attachments = attachmentRepository.findByRefTableAndRefId("wall_tv_post", id)
                 .stream()
-                .map(f -> new FileItem(f.getDisplayFilename(), f.getFileSizeKb().doubleValue(), "/api/attachments/download/" + f.getAttachmentId()))
+                .map(f -> new FileItem(
+                        f.getDisplayFilename(), 
+                        f.getFileSizeKb().doubleValue(), 
+                        "/api/attachments/download/" + f.getAttachmentId(),
+                        UUID.randomUUID().toString(),
+                        "done",
+                        ""
+                        )
+                )
                 .collect(Collectors.toList());
         
+        
+        
+        double fileSize = 0d;
+        try {
+            HeadObjectResponse head = s3Service.getHeader(AppUtils.extractPathUsingString(post.getThumbnailUrl()));
+            fileSize = AppUtils.getFileSizeInKB(head).doubleValue();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         
         return new GalleryPostDetailData(
                 id,
@@ -139,11 +163,19 @@ public class GalleryPostService {
                 post.getContent(),
                 AppUtils.convertDateFormat(post.getCreatedAt()),
                 post.getViews(),
+                new FileItem(
+                        FilenameUtils.getName(post.getThumbnailUrl()), 
+                        fileSize, 
+                        post.getThumbnailUrl(),
+                        UUID.randomUUID().toString(),
+                        "done",
+                        MimeTypeDetector.getMimeType(post.getThumbnailUrl())
+                        ),
                 attachments
             );
     }
     
-    public GalleryPostDetailData fetchCeilingTvPostById(int id) {
+    public GalleryPostDetailData fetchCeilingTvPostById(int id, boolean isUpdateViewCount) {
         Optional<CeilingTvPost> postOpt = ceilingTvPostRepository.findById(id);
         if (postOpt.isEmpty()) {
             throw new PostNotFoundException("ID가 " + id + "인 게시글을 찾을 수 없습니다.");
@@ -158,8 +190,24 @@ public class GalleryPostService {
         // 3. 첨부파일 조회
         List<FileItem> attachments = attachmentRepository.findByRefTableAndRefId("ceiling_tv_post", id)
                 .stream()
-                .map(f -> new FileItem(f.getDisplayFilename(), f.getFileSizeKb().doubleValue(), "/api/attachments/download/" + f.getAttachmentId()))
+                .map(f -> new FileItem(
+                        f.getDisplayFilename(), 
+                        f.getFileSizeKb().doubleValue(), 
+                        "/api/attachments/download/" + f.getAttachmentId(),
+                        UUID.randomUUID().toString(),
+                        "done",
+                        ""
+                        )
+                )
                 .collect(Collectors.toList());
+        
+        double fileSize = 0d;
+        try {
+            HeadObjectResponse head = s3Service.getHeader(AppUtils.extractPathUsingString(post.getThumbnailUrl()));
+            fileSize = AppUtils.getFileSizeInKB(head).doubleValue();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         
         return new GalleryPostDetailData(
                 id,
@@ -167,6 +215,14 @@ public class GalleryPostService {
                 post.getContent(),
                 AppUtils.convertDateFormat(post.getCreatedAt()),
                 post.getViews(),
+                new FileItem(
+                        FilenameUtils.getName(post.getThumbnailUrl()), 
+                        fileSize, 
+                        post.getThumbnailUrl(),
+                        UUID.randomUUID().toString(),
+                        "done",
+                        MimeTypeDetector.getMimeType(post.getThumbnailUrl())
+                        ),
                 attachments
             );
     }
@@ -257,5 +313,141 @@ public class GalleryPostService {
             throw new IllegalArgumentException("지원하지 않는 엔터티입니다: " + params.getEntity());
         }
     }
+    
+    
+    @Transactional
+    public void updateGalleryPost(UpdateGalleryPostParams params, HttpServletRequest request) {
+        if ("WallTvPost".equals(params.getEntity())) {
+            
+            Optional<WallTvPost> postOpt = wallTvPostRepository.findById(params.getId());
+            if (postOpt.isEmpty()) {
+                throw new PostNotFoundException("ID가 " + params.getId() + "인 게시글을 찾을 수 없습니다.");
+            }
+
+            WallTvPost post = postOpt.get();
+            
+            String previousThumbnailUrl = post.getThumbnailUrl();
+            
+            post.setTitle(params.getTitle());
+            post.setContent(params.getContent());
+            post.setEditorName("리얼테크");
+            post.setEditorIp(AppUtils.getClientIpFromRequest(request));
+            post.setEditedAt(AppUtils.getCurrentDateTime());
+            
+            if (params.getThumbnail() != null) {
+                // 썸네일 파일 s3에 업로드
+                String thumbnailUrl = s3Service.uploadFile(params.getThumbnail(), AppUtils.generateEditorPath("wall_tv_post"));
+                post.setThumbnailUrl(thumbnailUrl);
+            }
+            
+            // 수정내용 저장
+            wallTvPostRepository.save(post);
+            
+            
+            // 기존 첨부파일 삭제
+            List<Attachment> previousAttachments = attachmentRepository.findByRefTableAndRefId("wall_tv_post", post.getPostId());
+            for (Attachment attachment : previousAttachments) {
+                s3Service.deleteFile(AppUtils.extractPathUsingString(attachment.getS3Filename()));
+                attachmentRepository.delete(attachment);
+            }
+            
+            
+            // 신규 첨부파일 등록
+            List<Attachment> attachments = new ArrayList<>();
+            if (params.getAttachments() != null) {
+                for (MultipartFile file : params.getAttachments()) {
+                    String filePath = s3Service.uploadFile(file, AppUtils.generateAttachmentPath("wall_tv_post"));
+                    
+                    Attachment attachment = new Attachment();
+                    attachment.setDisplayFilename(file.getOriginalFilename());
+                    attachment.setFileSizeKb(AppUtils.getFileSizeInKB(file));
+                    attachment.setRefId(post.getPostId());
+                    attachment.setRefTable("wall_tv_post");
+                    attachment.setS3Filename(filePath);
+                    
+                    attachments.add(attachment);
+                }
+            }
+            if (!attachments.isEmpty()) {
+                attachmentRepository.saveAll(attachments);
+            }
+            
+            
+            // 기존 썸네일 파일 s3에서 삭제
+            if (params.getThumbnail() != null) {
+                s3Service.deleteFile(AppUtils.extractPathUsingString(previousThumbnailUrl));
+            }
+            
+
+        } else if ("CeilingTvPost".equals(params.getEntity())) {
+            
+            
+            Optional<CeilingTvPost> postOpt = ceilingTvPostRepository.findById(params.getId());
+            if (postOpt.isEmpty()) {
+                throw new PostNotFoundException("ID가 " + params.getId() + "인 게시글을 찾을 수 없습니다.");
+            }
+
+            CeilingTvPost post = postOpt.get();
+            
+            String previousThumbnailUrl = post.getThumbnailUrl();
+            
+            post.setTitle(params.getTitle());
+            post.setContent(params.getContent());
+            post.setEditorName("리얼테크");
+            post.setEditorIp(AppUtils.getClientIpFromRequest(request));
+            post.setEditedAt(AppUtils.getCurrentDateTime());
+            
+            if (params.getThumbnail() != null) {
+                // 썸네일 파일 s3에 업로드
+                String thumbnailUrl = s3Service.uploadFile(params.getThumbnail(), AppUtils.generateEditorPath("ceiling_tv_post"));
+                post.setThumbnailUrl(thumbnailUrl);
+            }
+            
+            // 수정내용 저장
+            ceilingTvPostRepository.save(post);
+            
+            
+            // 기존 첨부파일 삭제
+            List<Attachment> previousAttachments = attachmentRepository.findByRefTableAndRefId("ceiling_tv_post", post.getPostId());
+            for (Attachment attachment : previousAttachments) {
+                s3Service.deleteFile(AppUtils.extractPathUsingString(attachment.getS3Filename()));
+                attachmentRepository.delete(attachment);
+            }
+            
+            
+            // 신규 첨부파일 등록
+            List<Attachment> attachments = new ArrayList<>();
+            if (params.getAttachments() != null) {
+                for (MultipartFile file : params.getAttachments()) {
+                    String filePath = s3Service.uploadFile(file, AppUtils.generateAttachmentPath("ceiling_tv_post"));
+                    
+                    Attachment attachment = new Attachment();
+                    attachment.setDisplayFilename(file.getOriginalFilename());
+                    attachment.setFileSizeKb(AppUtils.getFileSizeInKB(file));
+                    attachment.setRefId(post.getPostId());
+                    attachment.setRefTable("ceiling_tv_post");
+                    attachment.setS3Filename(filePath);
+                    
+                    attachments.add(attachment);
+                }
+            }
+            if (!attachments.isEmpty()) {
+                attachmentRepository.saveAll(attachments);
+            }
+            
+            
+            // 기존 썸네일 파일 s3에서 삭제
+            if (params.getThumbnail() != null) {
+                s3Service.deleteFile(AppUtils.extractPathUsingString(previousThumbnailUrl));
+            }
+            
+            
+        } else {
+            throw new IllegalArgumentException("지원하지 않는 엔터티입니다: " + params.getEntity());
+        }
+    }
+    
+    
+    
     
 }

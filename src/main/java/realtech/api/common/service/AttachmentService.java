@@ -25,6 +25,6 @@ public class AttachmentService {
     }
     
     public InputStream downloadAttachment(Attachment attachment) {
-        return s3Service.downloadFile("realtech-board", AppUtils.extractPathUsingString(attachment.getS3Filename()));
+        return s3Service.downloadFile(AppUtils.extractPathUsingString(attachment.getS3Filename()));
     }
 }

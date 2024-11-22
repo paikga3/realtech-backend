@@ -11,6 +11,8 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.web.multipart.MultipartFile;
 
+import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
+
 public class AppUtils {
     public static boolean isNewPost(String createdAt) {
         DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
@@ -94,26 +96,33 @@ public class AppUtils {
         return sizeInKB;
     }
     
+    // Helper 메서드: IPv4-mapped IPv6 주소 처리
+    private static String extractIPv4FromIPv6(String ip) {
+        if (ip != null && ip.startsWith("::ffff:")) {
+            return ip.substring(7); // "::ffff:" 접두사를 제거하여 IPv4 주소 반환
+        }
+        return ip;
+    }
+    
     public static String getClientIpFromRequest(HttpServletRequest request) {
+
+        // X-Forwarded-For 헤더에서 IP 가져오기
         String ip = request.getHeader("X-Forwarded-For");
         if (ip != null && !ip.isEmpty() && !"unknown".equalsIgnoreCase(ip)) {
             // X-Forwarded-For에 여러 IP가 있는 경우 첫 번째 IP 반환
-            return ip.split(",")[0];
+            ip = ip.split(",")[0].trim();
+            return extractIPv4FromIPv6(ip);
         }
 
+        // X-Real-IP 헤더에서 IP 가져오기
         ip = request.getHeader("X-Real-IP");
         if (ip != null && !ip.isEmpty() && !"unknown".equalsIgnoreCase(ip)) {
-            return ip;
+            return extractIPv4FromIPv6(ip);
         }
 
         // 프록시 정보가 없는 경우 getRemoteAddr 사용
         String remoteAddr = request.getRemoteAddr();
-
-        // IPv4-mapped IPv6 주소인지 확인
-        if (remoteAddr != null && remoteAddr.startsWith("::ffff:")) {
-            return remoteAddr.substring(7); // "::ffff:" 접두사를 제거하여 IPv4 주소 반환
-        }
-        return remoteAddr; // 기본 반환
+        return extractIPv4FromIPv6(remoteAddr);
     }
     
     /**
@@ -142,5 +151,20 @@ public class AppUtils {
 
         // 시작 위치부터 문자열의 끝까지 추출
         return url.substring(startIndex);
+    }
+    
+    public static BigDecimal getFileSizeInKB(HeadObjectResponse head) {
+        if (head == null) {
+            return BigDecimal.ZERO; // 파일이 없거나 비어 있으면 0 반환
+        }
+
+        // 바이트 단위의 파일 크기 가져오기
+        long sizeInBytes = head.contentLength();
+
+        // KB로 변환 (1KB = 1024 Bytes)
+        BigDecimal sizeInKB = BigDecimal.valueOf(sizeInBytes)
+                .divide(BigDecimal.valueOf(1024), 2, RoundingMode.HALF_UP); // 소수점 2자리 반올림
+
+        return sizeInKB;
     }
 }

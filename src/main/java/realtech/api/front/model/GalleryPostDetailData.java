@@ -13,5 +13,6 @@ public class GalleryPostDetailData {
     private String content;
     private String createdAt;
     private int views;
+    private FileItem thumbnail;
     private List<FileItem> attachments;
 }
