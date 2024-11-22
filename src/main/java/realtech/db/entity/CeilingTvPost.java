@@ -80,7 +80,7 @@ public class CeilingTvPost implements Serializable {
 		this.authorName = authorName;
 	}
 
-	public Object getContent() {
+	public String getContent() {
 		return this.content;
 	}
 

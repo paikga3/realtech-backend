@@ -7,7 +7,7 @@ import org.springframework.web.multipart.MultipartFile;
 import lombok.extern.log4j.Log4j2;
 import realtech.api.admin.model.UpdateWebsiteMetaParams;
 import realtech.api.admin.model.WebsiteMeta;
-import realtech.api.common.service.S3UploadService;
+import realtech.api.common.service.S3Service;
 import realtech.db.repository.WebsiteMetaRepository;
 
 @Log4j2
@@ -18,7 +18,7 @@ public class WebsiteMetaService {
     private WebsiteMetaRepository websiteMetaRepository;
     
     @Autowired
-    private S3UploadService s3UploadService;
+    private S3Service s3UploadService;
     
     public WebsiteMeta fetchWebsiteMeta() {
         
@@ -52,7 +52,7 @@ public class WebsiteMetaService {
         MultipartFile ogImage = params.getOgImage();
         if (ogImage != null && !ogImage.isEmpty()) {
             // S3에 업로드
-            String ogImageUrl = s3UploadService.uploadFile(ogImage, "data/setting", "realtech-board");
+            String ogImageUrl = s3UploadService.uploadFile(ogImage, "data/setting");
             meta.setOgImage(ogImageUrl);
         }
         

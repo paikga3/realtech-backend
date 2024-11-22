@@ -3,6 +3,7 @@ server:
   tomcat:
     relaxed-path-chars: '<,>,[,],^,`'
     relaxed-query-chars: '<,>,[,],],^,`'
+
 spring:
   application:
     name: realtech
@@ -22,6 +23,10 @@ spring:
         bootstrap-mode: default # deferred, default, lazy - https://velog.io/@daoh98/SpringJPA-Redis-Repository-scan-%EB%AC%B8%EC%A0%9C
   main:
     allow-bean-definition-overriding: true
+  servlet:
+    multipart:
+      max-file-size: 1MB    # 파일 하나의 최대 크기
+      max-request-size: 10MB # 요청 전체의 최대 크기
 
 #  session:
 #    store-type: redis

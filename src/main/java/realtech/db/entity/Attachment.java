@@ -1,7 +1,15 @@
 package realtech.db.entity;
 
 import java.io.Serializable;
-import javax.persistence.*;
+import java.math.BigDecimal;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.NamedQuery;
+import javax.persistence.Table;
 
 
 /**
@@ -9,6 +17,7 @@ import javax.persistence.*;
  * 
  */
 @Entity
+@Table(name="attachment")
 @NamedQuery(name="Attachment.findAll", query="SELECT a FROM Attachment a")
 public class Attachment implements Serializable {
 	private static final long serialVersionUID = 1L;
@@ -22,7 +31,7 @@ public class Attachment implements Serializable {
 	private String displayFilename;
 
 	@Column(name="file_size_kb")
-	private int fileSizeKb;
+	private BigDecimal fileSizeKb;
 
 	@Column(name="ref_id")
 	private int refId;
@@ -52,11 +61,11 @@ public class Attachment implements Serializable {
 		this.displayFilename = displayFilename;
 	}
 
-	public int getFileSizeKb() {
+	public BigDecimal getFileSizeKb() {
 		return this.fileSizeKb;
 	}
 
-	public void setFileSizeKb(int fileSizeKb) {
+	public void setFileSizeKb(BigDecimal fileSizeKb) {
 		this.fileSizeKb = fileSizeKb;
 	}
 
