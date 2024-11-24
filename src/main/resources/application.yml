@@ -3,7 +3,7 @@ server:
   tomcat:
     relaxed-path-chars: '<,>,[,],^,`'
     relaxed-query-chars: '<,>,[,],],^,`'
-
+    reject-illegal-header: true
 spring:
   application:
     name: realtech

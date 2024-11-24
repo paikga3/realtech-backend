@@ -14,6 +14,8 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -447,7 +449,68 @@ public class GalleryPostService {
         }
     }
     
+    // 게시물 삭제
+    public void deleteGalleryPost(int id, String entity) {
+        if ("WallTvPost".equals(entity)) {
+            Optional<WallTvPost> postOpt = wallTvPostRepository.findById(id);
+            if (postOpt.isEmpty()) {
+                throw new PostNotFoundException("ID가 " + id + "인 게시글을 찾을 수 없습니다.");
+            }
+
+            WallTvPost post = postOpt.get();
+            
+            // 기존 첨부파일 삭제
+            List<Attachment> previousAttachments = attachmentRepository.findByRefTableAndRefId("wall_tv_post", post.getPostId());
+            for (Attachment attachment : previousAttachments) {
+                // s3에서 첨부파일 삭제
+                s3Service.deleteFile(AppUtils.extractPathUsingString(attachment.getS3Filename()));
+                attachmentRepository.delete(attachment);
+            }
+            
+            // s3에서 썸네일 삭제
+            s3Service.deleteFile(AppUtils.extractPathUsingString(post.getThumbnailUrl()));
+            
+            // 갤러리 삭제
+            wallTvPostRepository.delete(post);
+            
+        } else if ("CeilingTvPost".equals(entity)) {
+            
+            Optional<CeilingTvPost> postOpt = ceilingTvPostRepository.findById(id);
+            if (postOpt.isEmpty()) {
+                throw new PostNotFoundException("ID가 " + id + "인 게시글을 찾을 수 없습니다.");
+            }
+
+            CeilingTvPost post = postOpt.get();
+            
+            // 기존 첨부파일 삭제
+            List<Attachment> previousAttachments = attachmentRepository.findByRefTableAndRefId("ceiling_tv_post", post.getPostId());
+            for (Attachment attachment : previousAttachments) {
+                // s3에서 첨부파일 삭제
+                s3Service.deleteFile(AppUtils.extractPathUsingString(attachment.getS3Filename()));
+                attachmentRepository.delete(attachment);
+            }
+            
+            // s3에서 썸네일 삭제
+            s3Service.deleteFile(AppUtils.extractPathUsingString(post.getThumbnailUrl()));
+            
+            // 갤러리 삭제
+            ceilingTvPostRepository.delete(post);
+            
+        } else {
+            throw new IllegalArgumentException("지원하지 않는 엔터티입니다: " + entity);
+        }
+    }
     
     
+    public List<GalleryPost> getLatestPosts(int count) {
+        // PageRequest.of(페이지 번호, 가져올 개수, 정렬 정보)
+        Pageable pageable = PageRequest.of(0, count);
+        return wallTvPostRepository.findAllByOrderByCreatedAtDesc(pageable).getContent()
+                .stream()
+                .map(a -> {
+                    return new GalleryPost(a.getPostId(), a.getTitle(), a.getThumbnailUrl());
+                })
+                .collect(Collectors.toList());
+    }
     
 }

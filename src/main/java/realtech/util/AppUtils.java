@@ -1,16 +1,23 @@
 package realtech.util;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.web.multipart.MultipartFile;
 
+import net.coobird.thumbnailator.Thumbnails;
 import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 
 public class AppUtils {
@@ -166,5 +173,83 @@ public class AppUtils {
                 .divide(BigDecimal.valueOf(1024), 2, RoundingMode.HALF_UP); // 소수점 2자리 반올림
 
         return sizeInKB;
+    }
+    
+    
+    /**
+     * MultipartFile 이미지를 리사이징하고 InputStream으로 반환 (포맷 유지)
+     *
+     * @param multipartFile MultipartFile 입력 이미지
+     * @param targetWidth   리사이징 후 너비
+     * @param targetHeight  리사이징 후 높이
+     * @return InputStream 리사이징된 이미지의 InputStream
+     * @throws IOException 이미지 처리 중 오류 발생 시 예외
+     */
+    public static InputStream resizeImage(MultipartFile multipartFile, int targetWidth, int targetHeight) throws IOException {
+        // 원본 파일 포맷 추출
+        String originalFilename = multipartFile.getOriginalFilename();
+        if (originalFilename == null || !originalFilename.contains(".")) {
+            throw new IllegalArgumentException("파일의 확장자를 확인할 수 없습니다.");
+        }
+
+        // 파일 확장자에서 포맷 추출
+        String fileExtension = originalFilename.substring(originalFilename.lastIndexOf(".") + 1).toLowerCase();
+
+        // 지원하지 않는 포맷에 대한 예외 처리
+        if (!isSupportedFormat(fileExtension)) {
+            throw new IllegalArgumentException("지원되지 않는 파일 포맷입니다: " + fileExtension);
+        }
+
+        // ByteArrayOutputStream을 사용하여 리사이징된 이미지를 저장
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+
+        // Thumbnailator로 리사이징 처리
+        Thumbnails.of(multipartFile.getInputStream())
+                  .size(targetWidth, targetHeight)
+                  .outputFormat(fileExtension) // 원본 파일 포맷 사용
+                  .toOutputStream(outputStream);
+
+        // ByteArrayOutputStream에서 InputStream으로 변환
+        return new ByteArrayInputStream(outputStream.toByteArray());
+    }
+
+    /**
+     * 지원되는 이미지 포맷 확인 메서드
+     *
+     * @param format 파일 확장자
+     * @return 지원 여부
+     */
+    public static boolean isSupportedFormat(String format) {
+        return format.equals("jpg") || format.equals("jpeg") || format.equals("png") || format.equals("gif") || format.equals("bmp");
+    }
+    
+    
+ // 확장자별 Content-Type 매핑
+    private static final Map<String, String> EXTENSION_TO_CONTENT_TYPE = new HashMap<>();
+
+    static {
+        EXTENSION_TO_CONTENT_TYPE.put("jpg", "image/jpeg");
+        EXTENSION_TO_CONTENT_TYPE.put("jpeg", "image/jpeg");
+        EXTENSION_TO_CONTENT_TYPE.put("png", "image/png");
+        EXTENSION_TO_CONTENT_TYPE.put("gif", "image/gif");
+        EXTENSION_TO_CONTENT_TYPE.put("bmp", "image/bmp");
+        EXTENSION_TO_CONTENT_TYPE.put("tiff", "image/tiff");
+        EXTENSION_TO_CONTENT_TYPE.put("webp", "image/webp");
+        EXTENSION_TO_CONTENT_TYPE.put("svg", "image/svg+xml");
+    }
+
+    /**
+     * 확장자를 기반으로 Content-Type 반환
+     *
+     * @param extension 파일 확장자 (예: "jpg", "png")
+     * @return Content-Type 문자열 (예: "image/jpeg"), 지원되지 않는 확장자의 경우 기본값 반환
+     */
+    public static String getContentType(String extension) {
+        if (extension == null || extension.isEmpty()) {
+            return "application/octet-stream"; // 기본 Content-Type
+        }
+
+        // 확장자를 소문자로 변환 후 매핑 확인
+        return EXTENSION_TO_CONTENT_TYPE.getOrDefault(extension.toLowerCase(), "application/octet-stream");
     }
 }
