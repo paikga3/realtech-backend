@@ -18,7 +18,7 @@ import realtech.db.entity.Attachment;
 import realtech.db.entity.Comment;
 import realtech.db.repository.AttachmentRepository;
 import realtech.db.repository.CommentRepository;
-import realtech.util.AppUtils;
+import realtech.util.AppUtil;
 
 @Service
 public class NoticeService {
@@ -97,7 +97,7 @@ public class NoticeService {
 
             
             // 등록한지 10분 이내인 경우 신규글 마킹
-            post.setNew(AppUtils.isNewPost(post.getCreatedAt()));
+            post.setNew(AppUtil.isNewPost(post.getCreatedAt()));
         }
         
         PagedResponse<Notice> pr = new PagedResponse<>();

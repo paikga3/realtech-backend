@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 
 import realtech.db.entity.Attachment;
 import realtech.db.repository.AttachmentRepository;
-import realtech.util.AppUtils;
+import realtech.util.AppUtil;
 
 @Service
 public class AttachmentService {
@@ -25,6 +25,6 @@ public class AttachmentService {
     }
     
     public InputStream downloadAttachment(Attachment attachment) {
-        return s3Service.downloadFile(AppUtils.extractPathUsingString(attachment.getS3Filename()));
+        return s3Service.downloadFile(AppUtil.extractPathUsingString(attachment.getS3Filename()));
     }
 }

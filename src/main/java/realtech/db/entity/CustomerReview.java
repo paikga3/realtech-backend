@@ -45,6 +45,8 @@ public class CustomerReview implements Serializable {
 
 	private String password;
 
+	private String salt;
+
 	private String title;
 
 	private int views;
@@ -130,6 +132,14 @@ public class CustomerReview implements Serializable {
 
 	public void setPassword(String password) {
 		this.password = password;
+	}
+
+	public String getSalt() {
+		return this.salt;
+	}
+
+	public void setSalt(String salt) {
+		this.salt = salt;
 	}
 
 	public String getTitle() {

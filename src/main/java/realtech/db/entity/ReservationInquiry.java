@@ -1,14 +1,7 @@
 package realtech.db.entity;
 
 import java.io.Serializable;
-
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.NamedQuery;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 
 /**
@@ -40,6 +33,7 @@ public class ReservationInquiry implements Serializable {
 
 	private String contact;
 
+	@Lob
 	private String content;
 
 	@Column(name="created_at")
@@ -64,6 +58,8 @@ public class ReservationInquiry implements Serializable {
 	@Column(name="road_address")
 	private String roadAddress;
 
+	private String salt;
+
 	@Column(name="settop_box_embed")
 	private int settopBoxEmbed;
 
@@ -80,7 +76,7 @@ public class ReservationInquiry implements Serializable {
 
 	@Column(name="wall_type_other")
 	private String wallTypeOther;
-	
+
 	public ReservationInquiry() {
 	}
 
@@ -202,6 +198,14 @@ public class ReservationInquiry implements Serializable {
 
 	public void setRoadAddress(String roadAddress) {
 		this.roadAddress = roadAddress;
+	}
+
+	public String getSalt() {
+		return this.salt;
+	}
+
+	public void setSalt(String salt) {
+		this.salt = salt;
 	}
 
 	public int getSettopBoxEmbed() {

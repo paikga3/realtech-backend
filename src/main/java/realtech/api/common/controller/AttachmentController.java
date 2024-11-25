@@ -23,7 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
 import realtech.api.common.service.AttachmentService;
 import realtech.api.common.service.S3Service;
 import realtech.db.entity.Attachment;
-import realtech.util.AppUtils;
+import realtech.util.AppUtil;
 
 @RestController
 public class AttachmentController {
@@ -74,7 +74,7 @@ public class AttachmentController {
     public ResponseEntity<Map<String, String>> uploadFile(@RequestParam("file") MultipartFile file, @RequestParam("table") String table) {
         try {
             // 파일 S3에 업로드
-            String fileUrl = s3Service.uploadFile(file, AppUtils.generateEditorPath(table));
+            String fileUrl = s3Service.uploadFile(file, AppUtil.generateEditorPath(table));
 
             // URL 반환
             Map<String, String> response = new HashMap<>();

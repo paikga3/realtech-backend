@@ -1,26 +1,28 @@
 package realtech.util;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.security.SecureRandom;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.Base64;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.PBEKeySpec;
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.web.multipart.MultipartFile;
 
-import net.coobird.thumbnailator.Thumbnails;
+import realtech.api.front.model.CommentDetail;
 import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 
-public class AppUtils {
+public class AppUtil {
     public static boolean isNewPost(String createdAt) {
         DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
         
@@ -47,6 +49,34 @@ public class AppUtils {
         LocalDateTime dateTime = LocalDateTime.parse(inputDate, inputFormatter);
         // 원하는 형식으로 변환
         return dateTime.format(outputFormatter);
+    }
+    
+    /**
+     * yyyyMMdd 형식의 문자열을 yyyy-MM-dd 형식의 문자열로 변환합니다.
+     * 
+     * @param inputDate 변환할 입력 날짜 (yyyyMMdd 형식)
+     * @return 변환된 날짜 문자열 (yyyy-MM-dd 형식)
+     * @throws IllegalArgumentException 입력 형식이 잘못된 경우
+     */
+    public static String convertToDashedFormat(String inputDate) {
+        if (inputDate == null || inputDate.length() != 8) {
+            throw new IllegalArgumentException("입력 날짜 형식이 잘못되었습니다. yyyyMMdd 형식이어야 합니다.");
+        }
+
+        try {
+            // 입력 형식 지정
+            DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+            // 출력 형식 지정
+            DateTimeFormatter outputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            
+            // 입력 날짜 문자열을 LocalDate로 변환
+            LocalDate date = LocalDate.parse(inputDate, inputFormatter);
+            
+            // 변환된 날짜를 출력 형식으로 변환
+            return date.format(outputFormatter);
+        } catch (DateTimeParseException e) {
+            throw new IllegalArgumentException("유효하지 않은 날짜 형식입니다: " + inputDate, e);
+        }
     }
     
     /**
@@ -175,43 +205,6 @@ public class AppUtils {
         return sizeInKB;
     }
     
-    
-    /**
-     * MultipartFile 이미지를 리사이징하고 InputStream으로 반환 (포맷 유지)
-     *
-     * @param multipartFile MultipartFile 입력 이미지
-     * @param targetWidth   리사이징 후 너비
-     * @param targetHeight  리사이징 후 높이
-     * @return InputStream 리사이징된 이미지의 InputStream
-     * @throws IOException 이미지 처리 중 오류 발생 시 예외
-     */
-    public static InputStream resizeImage(MultipartFile multipartFile, int targetWidth, int targetHeight) throws IOException {
-        // 원본 파일 포맷 추출
-        String originalFilename = multipartFile.getOriginalFilename();
-        if (originalFilename == null || !originalFilename.contains(".")) {
-            throw new IllegalArgumentException("파일의 확장자를 확인할 수 없습니다.");
-        }
-
-        // 파일 확장자에서 포맷 추출
-        String fileExtension = originalFilename.substring(originalFilename.lastIndexOf(".") + 1).toLowerCase();
-
-        // 지원하지 않는 포맷에 대한 예외 처리
-        if (!isSupportedFormat(fileExtension)) {
-            throw new IllegalArgumentException("지원되지 않는 파일 포맷입니다: " + fileExtension);
-        }
-
-        // ByteArrayOutputStream을 사용하여 리사이징된 이미지를 저장
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-
-        // Thumbnailator로 리사이징 처리
-        Thumbnails.of(multipartFile.getInputStream())
-                  .size(targetWidth, targetHeight)
-                  .outputFormat(fileExtension) // 원본 파일 포맷 사용
-                  .toOutputStream(outputStream);
-
-        // ByteArrayOutputStream에서 InputStream으로 변환
-        return new ByteArrayInputStream(outputStream.toByteArray());
-    }
 
     /**
      * 지원되는 이미지 포맷 확인 메서드
@@ -251,5 +244,41 @@ public class AppUtils {
 
         // 확장자를 소문자로 변환 후 매핑 확인
         return EXTENSION_TO_CONTENT_TYPE.getOrDefault(extension.toLowerCase(), "application/octet-stream");
+    }
+    
+    public static byte[] generateSalt() {
+        SecureRandom random = new SecureRandom();
+        byte[] salt = new byte[16];
+        random.nextBytes(salt);
+        return salt;
+    }
+
+    public static String hashPassword(String password, byte[] salt) throws Exception {
+        int iterations = 10000;
+        int keyLength = 256;
+        PBEKeySpec spec = new PBEKeySpec(password.toCharArray(), salt, iterations, keyLength);
+        SecretKeyFactory keyFactory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
+        byte[] hash = keyFactory.generateSecret(spec).getEncoded();
+        return Base64.getEncoder().encodeToString(hash);
+    }
+    
+    // 전체 댓글 수를 계산하는 메서드
+    public static int countTotalComments(List<CommentDetail> comments) {
+        int total = 0;
+        for (CommentDetail comment : comments) {
+            total += countCommentAndReplies(comment);
+        }
+        return total;
+    }
+
+    // 단일 댓글과 그 자식 댓글의 수를 재귀적으로 계산
+    private static int countCommentAndReplies(CommentDetail comment) {
+        int count = 1; // 현재 댓글 포함
+        if (comment.getReplies() != null) {
+            for (CommentDetail reply : comment.getReplies()) {
+                count += countCommentAndReplies(reply); // 자식 댓글의 수 누적
+            }
+        }
+        return count;
     }
 }

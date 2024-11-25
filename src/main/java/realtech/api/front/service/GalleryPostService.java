@@ -35,7 +35,7 @@ import realtech.db.entity.WallTvPost;
 import realtech.db.repository.AttachmentRepository;
 import realtech.db.repository.CeilingTvPostRepository;
 import realtech.db.repository.WallTvPostRepository;
-import realtech.util.AppUtils;
+import realtech.util.AppUtil;
 import realtech.util.MimeTypeDetector;
 import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 
@@ -153,8 +153,8 @@ public class GalleryPostService {
         
         double fileSize = 0d;
         try {
-            HeadObjectResponse head = s3Service.getHeader(AppUtils.extractPathUsingString(post.getThumbnailUrl()));
-            fileSize = AppUtils.getFileSizeInKB(head).doubleValue();
+            HeadObjectResponse head = s3Service.getHeader(AppUtil.extractPathUsingString(post.getThumbnailUrl()));
+            fileSize = AppUtil.getFileSizeInKB(head).doubleValue();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -163,7 +163,7 @@ public class GalleryPostService {
                 id,
                 post.getTitle(),
                 post.getContent(),
-                AppUtils.convertDateFormat(post.getCreatedAt()),
+                AppUtil.convertDateFormat(post.getCreatedAt()),
                 post.getViews(),
                 new FileItem(
                         FilenameUtils.getName(post.getThumbnailUrl()), 
@@ -205,8 +205,8 @@ public class GalleryPostService {
         
         double fileSize = 0d;
         try {
-            HeadObjectResponse head = s3Service.getHeader(AppUtils.extractPathUsingString(post.getThumbnailUrl()));
-            fileSize = AppUtils.getFileSizeInKB(head).doubleValue();
+            HeadObjectResponse head = s3Service.getHeader(AppUtil.extractPathUsingString(post.getThumbnailUrl()));
+            fileSize = AppUtil.getFileSizeInKB(head).doubleValue();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -215,7 +215,7 @@ public class GalleryPostService {
                 id,
                 post.getTitle(),
                 post.getContent(),
-                AppUtils.convertDateFormat(post.getCreatedAt()),
+                AppUtil.convertDateFormat(post.getCreatedAt()),
                 post.getViews(),
                 new FileItem(
                         FilenameUtils.getName(post.getThumbnailUrl()), 
@@ -234,18 +234,18 @@ public class GalleryPostService {
 
         if ("WallTvPost".equals(params.getEntity())) {
             // 1. 썸네일 파일 s3에 업로드
-            String thumbnailUrl = s3Service.uploadFile(params.getThumbnail(), AppUtils.generateEditorPath("wall_tv_post"));
+            String thumbnailUrl = s3Service.uploadFile(params.getThumbnail(), AppUtil.generateEditorPath("wall_tv_post"));
             
             
             // 2. 첨부 파일 s3에 업로드
             List<Attachment> attachments = new ArrayList<>();
             if (params.getAttachments() != null) {
                 for (MultipartFile file : params.getAttachments()) {
-                    String filePath = s3Service.uploadFile(file, AppUtils.generateAttachmentPath("wall_tv_post"));
+                    String filePath = s3Service.uploadFile(file, AppUtil.generateAttachmentPath("wall_tv_post"));
                     
                     Attachment attachment = new Attachment();
                     attachment.setDisplayFilename(file.getOriginalFilename());
-                    attachment.setFileSizeKb(AppUtils.getFileSizeInKB(file));
+                    attachment.setFileSizeKb(AppUtil.getFileSizeInKB(file));
                     attachment.setRefId(0);
                     attachment.setRefTable("wall_tv_post");
                     attachment.setS3Filename(filePath);
@@ -257,11 +257,11 @@ public class GalleryPostService {
             // 3. wall_tv_post 생성
             WallTvPost post = new WallTvPost();
             post.setAuthorName("리얼테크");
-            post.setAuthorIp(AppUtils.getClientIpFromRequest(request));
+            post.setAuthorIp(AppUtil.getClientIpFromRequest(request));
             post.setThumbnailUrl(thumbnailUrl);
             post.setTitle(params.getTitle());
             post.setContent(params.getContent());
-            post.setCreatedAt(AppUtils.getCurrentDateTime());
+            post.setCreatedAt(AppUtil.getCurrentDateTime());
             post.setViews(0);
             
             WallTvPost savedPost = wallTvPostRepository.save(post);
@@ -274,18 +274,18 @@ public class GalleryPostService {
             
         } else if ("CeilingTvPost".equals(params.getEntity())) {
             // 1. 썸네일 파일 s3에 업로드
-            String thumbnailUrl = s3Service.uploadFile(params.getThumbnail(), AppUtils.generateEditorPath("ceiling_tv_post"));
+            String thumbnailUrl = s3Service.uploadFile(params.getThumbnail(), AppUtil.generateEditorPath("ceiling_tv_post"));
             
             
             // 2. 첨부 파일 s3에 업로드
             List<Attachment> attachments = new ArrayList<>();
             if (params.getAttachments() != null) {
                 for (MultipartFile file : params.getAttachments()) {
-                    String filePath = s3Service.uploadFile(file, AppUtils.generateAttachmentPath("ceiling_tv_post"));
+                    String filePath = s3Service.uploadFile(file, AppUtil.generateAttachmentPath("ceiling_tv_post"));
                     
                     Attachment attachment = new Attachment();
                     attachment.setDisplayFilename(file.getOriginalFilename());
-                    attachment.setFileSizeKb(AppUtils.getFileSizeInKB(file));
+                    attachment.setFileSizeKb(AppUtil.getFileSizeInKB(file));
                     attachment.setRefId(0);
                     attachment.setRefTable("ceiling_tv_post");
                     attachment.setS3Filename(filePath);
@@ -297,11 +297,11 @@ public class GalleryPostService {
             // 3. wall_tv_post 생성
             CeilingTvPost post = new CeilingTvPost();
             post.setAuthorName("리얼테크");
-            post.setAuthorIp(AppUtils.getClientIpFromRequest(request));
+            post.setAuthorIp(AppUtil.getClientIpFromRequest(request));
             post.setThumbnailUrl(thumbnailUrl);
             post.setTitle(params.getTitle());
             post.setContent(params.getContent());
-            post.setCreatedAt(AppUtils.getCurrentDateTime());
+            post.setCreatedAt(AppUtil.getCurrentDateTime());
             post.setViews(0);
             
             CeilingTvPost savedPost = ceilingTvPostRepository.save(post);
@@ -333,12 +333,12 @@ public class GalleryPostService {
             post.setTitle(params.getTitle());
             post.setContent(params.getContent());
             post.setEditorName("리얼테크");
-            post.setEditorIp(AppUtils.getClientIpFromRequest(request));
-            post.setEditedAt(AppUtils.getCurrentDateTime());
+            post.setEditorIp(AppUtil.getClientIpFromRequest(request));
+            post.setEditedAt(AppUtil.getCurrentDateTime());
             
             if (params.getThumbnail() != null) {
                 // 썸네일 파일 s3에 업로드
-                String thumbnailUrl = s3Service.uploadFile(params.getThumbnail(), AppUtils.generateEditorPath("wall_tv_post"));
+                String thumbnailUrl = s3Service.uploadFile(params.getThumbnail(), AppUtil.generateEditorPath("wall_tv_post"));
                 post.setThumbnailUrl(thumbnailUrl);
             }
             
@@ -349,7 +349,7 @@ public class GalleryPostService {
             // 기존 첨부파일 삭제
             List<Attachment> previousAttachments = attachmentRepository.findByRefTableAndRefId("wall_tv_post", post.getPostId());
             for (Attachment attachment : previousAttachments) {
-                s3Service.deleteFile(AppUtils.extractPathUsingString(attachment.getS3Filename()));
+                s3Service.deleteFile(AppUtil.extractPathUsingString(attachment.getS3Filename()));
                 attachmentRepository.delete(attachment);
             }
             
@@ -358,11 +358,11 @@ public class GalleryPostService {
             List<Attachment> attachments = new ArrayList<>();
             if (params.getAttachments() != null) {
                 for (MultipartFile file : params.getAttachments()) {
-                    String filePath = s3Service.uploadFile(file, AppUtils.generateAttachmentPath("wall_tv_post"));
+                    String filePath = s3Service.uploadFile(file, AppUtil.generateAttachmentPath("wall_tv_post"));
                     
                     Attachment attachment = new Attachment();
                     attachment.setDisplayFilename(file.getOriginalFilename());
-                    attachment.setFileSizeKb(AppUtils.getFileSizeInKB(file));
+                    attachment.setFileSizeKb(AppUtil.getFileSizeInKB(file));
                     attachment.setRefId(post.getPostId());
                     attachment.setRefTable("wall_tv_post");
                     attachment.setS3Filename(filePath);
@@ -377,7 +377,7 @@ public class GalleryPostService {
             
             // 기존 썸네일 파일 s3에서 삭제
             if (params.getThumbnail() != null) {
-                s3Service.deleteFile(AppUtils.extractPathUsingString(previousThumbnailUrl));
+                s3Service.deleteFile(AppUtil.extractPathUsingString(previousThumbnailUrl));
             }
             
 
@@ -396,12 +396,12 @@ public class GalleryPostService {
             post.setTitle(params.getTitle());
             post.setContent(params.getContent());
             post.setEditorName("리얼테크");
-            post.setEditorIp(AppUtils.getClientIpFromRequest(request));
-            post.setEditedAt(AppUtils.getCurrentDateTime());
+            post.setEditorIp(AppUtil.getClientIpFromRequest(request));
+            post.setEditedAt(AppUtil.getCurrentDateTime());
             
             if (params.getThumbnail() != null) {
                 // 썸네일 파일 s3에 업로드
-                String thumbnailUrl = s3Service.uploadFile(params.getThumbnail(), AppUtils.generateEditorPath("ceiling_tv_post"));
+                String thumbnailUrl = s3Service.uploadFile(params.getThumbnail(), AppUtil.generateEditorPath("ceiling_tv_post"));
                 post.setThumbnailUrl(thumbnailUrl);
             }
             
@@ -412,7 +412,7 @@ public class GalleryPostService {
             // 기존 첨부파일 삭제
             List<Attachment> previousAttachments = attachmentRepository.findByRefTableAndRefId("ceiling_tv_post", post.getPostId());
             for (Attachment attachment : previousAttachments) {
-                s3Service.deleteFile(AppUtils.extractPathUsingString(attachment.getS3Filename()));
+                s3Service.deleteFile(AppUtil.extractPathUsingString(attachment.getS3Filename()));
                 attachmentRepository.delete(attachment);
             }
             
@@ -421,11 +421,11 @@ public class GalleryPostService {
             List<Attachment> attachments = new ArrayList<>();
             if (params.getAttachments() != null) {
                 for (MultipartFile file : params.getAttachments()) {
-                    String filePath = s3Service.uploadFile(file, AppUtils.generateAttachmentPath("ceiling_tv_post"));
+                    String filePath = s3Service.uploadFile(file, AppUtil.generateAttachmentPath("ceiling_tv_post"));
                     
                     Attachment attachment = new Attachment();
                     attachment.setDisplayFilename(file.getOriginalFilename());
-                    attachment.setFileSizeKb(AppUtils.getFileSizeInKB(file));
+                    attachment.setFileSizeKb(AppUtil.getFileSizeInKB(file));
                     attachment.setRefId(post.getPostId());
                     attachment.setRefTable("ceiling_tv_post");
                     attachment.setS3Filename(filePath);
@@ -440,7 +440,7 @@ public class GalleryPostService {
             
             // 기존 썸네일 파일 s3에서 삭제
             if (params.getThumbnail() != null) {
-                s3Service.deleteFile(AppUtils.extractPathUsingString(previousThumbnailUrl));
+                s3Service.deleteFile(AppUtil.extractPathUsingString(previousThumbnailUrl));
             }
             
             
@@ -463,12 +463,12 @@ public class GalleryPostService {
             List<Attachment> previousAttachments = attachmentRepository.findByRefTableAndRefId("wall_tv_post", post.getPostId());
             for (Attachment attachment : previousAttachments) {
                 // s3에서 첨부파일 삭제
-                s3Service.deleteFile(AppUtils.extractPathUsingString(attachment.getS3Filename()));
+                s3Service.deleteFile(AppUtil.extractPathUsingString(attachment.getS3Filename()));
                 attachmentRepository.delete(attachment);
             }
             
             // s3에서 썸네일 삭제
-            s3Service.deleteFile(AppUtils.extractPathUsingString(post.getThumbnailUrl()));
+            s3Service.deleteFile(AppUtil.extractPathUsingString(post.getThumbnailUrl()));
             
             // 갤러리 삭제
             wallTvPostRepository.delete(post);
@@ -486,12 +486,12 @@ public class GalleryPostService {
             List<Attachment> previousAttachments = attachmentRepository.findByRefTableAndRefId("ceiling_tv_post", post.getPostId());
             for (Attachment attachment : previousAttachments) {
                 // s3에서 첨부파일 삭제
-                s3Service.deleteFile(AppUtils.extractPathUsingString(attachment.getS3Filename()));
+                s3Service.deleteFile(AppUtil.extractPathUsingString(attachment.getS3Filename()));
                 attachmentRepository.delete(attachment);
             }
             
             // s3에서 썸네일 삭제
-            s3Service.deleteFile(AppUtils.extractPathUsingString(post.getThumbnailUrl()));
+            s3Service.deleteFile(AppUtil.extractPathUsingString(post.getThumbnailUrl()));
             
             // 갤러리 삭제
             ceilingTvPostRepository.delete(post);
