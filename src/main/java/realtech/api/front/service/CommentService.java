@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import realtech.api.front.model.CommentDetail;
 import realtech.db.entity.Comment;
 import realtech.db.repository.CommentRepository;
+import realtech.util.AppUtil;
 
 @Service
 public class CommentService {
@@ -16,7 +17,7 @@ public class CommentService {
     private CommentRepository commentRepository;
     
     public List<CommentDetail> getComments(String refTable, int refId) {
-        List<Comment> rootComments = commentRepository.findByRefTableAndRefIdAndParentCommentIdIsNull(refTable, refId);
+        List<Comment> rootComments = commentRepository.findByRefTableAndRefIdAndParentCommentIdOrderByCommentIdDesc(refTable, refId, 0);
         return buildCommentHierarchy(rootComments, 1);
     }
 
@@ -28,11 +29,12 @@ public class CommentService {
             detail.setId(comment.getCommentId());
             detail.setContent(comment.getContent());
             detail.setAuthorName(comment.getAuthorName());
-            detail.setCreatedAt(comment.getCreatedAt());
+            detail.setAuthorIp(comment.getAuthorIp());
+            detail.setCreatedAt(AppUtil.formatToCompactDateTime(comment.getCreatedAt()));
             detail.setLevel(level);
 
             // 자식 댓글 조회
-            List<Comment> childComments = commentRepository.findByRefTableAndRefIdAndParentCommentId(
+            List<Comment> childComments = commentRepository.findByRefTableAndRefIdAndParentCommentIdOrderByCommentIdDesc(
                     comment.getRefTable(), comment.getRefId(), comment.getCommentId());
             detail.setReplies(buildCommentHierarchy(childComments, level + 1));
 

@@ -156,7 +156,7 @@ public class ReservationInquiryService {
         detail.setBraketTypeOther(post.getBraketTypeOther());
         detail.setContact(post.getContact());
         detail.setContent(post.getContent());
-        detail.setCreatedAt(AppUtil.convertDateFormat(post.getCreatedAt()));
+        detail.setCreatedAt(AppUtil.formatToCompactDateTime(post.getCreatedAt()));
         detail.setInstallationDate(AppUtil.convertToDashedFormat(post.getInstallationDate()));
         detail.setIsPrivate(post.getIsPrivate());
         detail.setLotAddress(post.getLotAddress());
@@ -169,10 +169,6 @@ public class ReservationInquiryService {
         detail.setViews(post.getViews());
         detail.setWallType(post.getWallType());
         detail.setWallTypeOther(post.getWallTypeOther());
-
-        // 댓글 추가
-        detail.setComments(commentService.getComments("reservation_inquiry", postId));
-        detail.setTotalComments(AppUtil.countTotalComments(detail.getComments()));
         
         // 첨부파일 조회
         List<FileItem> attachments = attachmentRepository.findByRefTableAndRefId("reservation_inquiry", postId)

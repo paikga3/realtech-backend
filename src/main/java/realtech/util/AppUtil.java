@@ -39,7 +39,7 @@ public class AppUtil {
         return duration.toMinutes() < 10;
     }
     
-    public static String convertDateFormat(String inputDate) {
+    public static String formatToCompactDateTime(String inputDate) {
         // 입력 날짜 형식
         DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
         // 출력 날짜 형식

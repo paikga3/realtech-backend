@@ -9,6 +9,7 @@ public class CommentDetail {
     private int id;
     private String content;
     private String authorName;
+    private String authorIp;
     private String createdAt;
     private int level;
     private List<CommentDetail> replies; // 자식 댓글 리스트

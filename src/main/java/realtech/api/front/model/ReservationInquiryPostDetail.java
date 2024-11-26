@@ -27,6 +27,4 @@ public class ReservationInquiryPostDetail {
     private String wallType;
     private String wallTypeOther;
     private List<FileItem> attachments;
-    private List<CommentDetail> comments;
-    private int totalComments;
 }

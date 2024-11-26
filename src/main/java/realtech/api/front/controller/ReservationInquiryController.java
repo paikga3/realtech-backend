@@ -12,6 +12,7 @@ import realtech.api.front.model.FetchReservationInquiriesParams;
 import realtech.api.front.model.ReservationInquiryPost;
 import realtech.api.front.model.ReservationInquiryPostDetail;
 import realtech.api.front.service.ReservationInquiryService;
+import realtech.util.AesEncryptionUtil;
 import realtech.util.JwtValidator;
 
 @RestController
@@ -30,9 +31,9 @@ public class ReservationInquiryController {
     public ReservationInquiryPostDetail getReservationInquiryPostDetail(
             @PathVariable("id") int id, 
             @RequestHeader("Authorization") String authorizationHeader, 
-            @RequestParam(value = "edit", defaultValue = "view") String purpose) {
+            @RequestParam(value = "edit", defaultValue = "view") String purpose) throws Exception {
         // 토큰 검증 로직 (JWT 파싱 및 검증)
-        String token = authorizationHeader.substring(7);
+        String token = AesEncryptionUtil.decode(authorizationHeader.substring(7));
         JwtValidator.validateToken(token, "reservation_inquiry", id);
         boolean isUpdateViewCount = purpose.equals("view");
         return reservationInquiryService.getReservationInquiryDetail(id, isUpdateViewCount);

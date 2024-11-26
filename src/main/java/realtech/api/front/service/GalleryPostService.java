@@ -163,7 +163,7 @@ public class GalleryPostService {
                 id,
                 post.getTitle(),
                 post.getContent(),
-                AppUtil.convertDateFormat(post.getCreatedAt()),
+                AppUtil.formatToCompactDateTime(post.getCreatedAt()),
                 post.getViews(),
                 new FileItem(
                         FilenameUtils.getName(post.getThumbnailUrl()), 
@@ -215,7 +215,7 @@ public class GalleryPostService {
                 id,
                 post.getTitle(),
                 post.getContent(),
-                AppUtil.convertDateFormat(post.getCreatedAt()),
+                AppUtil.formatToCompactDateTime(post.getCreatedAt()),
                 post.getViews(),
                 new FileItem(
                         FilenameUtils.getName(post.getThumbnailUrl()), 
