@@ -1,6 +1,5 @@
 package realtech.aspect;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 
 import javax.servlet.http.HttpServletRequest;
@@ -9,8 +8,8 @@ import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.RequestParam;
 
+import realtech.api.front.model.BaseCommentRequest;
 import realtech.util.AesEncryptionUtil;
 import realtech.util.JwtValidator;
 
@@ -33,38 +32,15 @@ public class JwtValidationAspect {
 
         String token = AesEncryptionUtil.decode(authorizationHeader.substring(7));
 
-        // 현재 실행 중인 메서드의 정보 가져오기
-        Method method = getTargetMethod(joinPoint);
-
-        // 매개변수 이름 기반으로 refTable과 refId를 추출
+        // 공통 클래스 기반 파라미터 처리
         Object[] args = joinPoint.getArgs();
-        Annotation[][] parameterAnnotations = method.getParameterAnnotations();
-
-        String refTable = null;
-        Integer refId = null;
-
-        for (int i = 0; i < args.length; i++) {
-            for (Annotation annotation : parameterAnnotations[i]) {
-                if (annotation instanceof RequestParam) {
-                    RequestParam requestParam = (RequestParam) annotation;
-                    String paramName = requestParam.value();
-
-                    if ("refTable".equals(paramName) && args[i] instanceof String) {
-                        refTable = (String) args[i];
-                    } else if ("refId".equals(paramName) && args[i] instanceof Integer) {
-                        refId = (Integer) args[i];
-                    }
-                }
+        for (Object arg : args) {
+            if (arg instanceof BaseCommentRequest) {
+                BaseCommentRequest baseRequest = (BaseCommentRequest) arg;
+                JwtValidator.validateToken(token, baseRequest.getRefTable(), baseRequest.getRefId());
+                return;
             }
         }
-
-        // refTable 또는 refId가 없으면 예외 처리
-        if (refTable == null || refId == null) {
-            throw new RuntimeException("Missing required parameters: refTable or refId");
-        }
-
-        // 토큰 검증
-        JwtValidator.validateToken(token, refTable, refId);
     }
 
     private Method getTargetMethod(JoinPoint joinPoint) throws NoSuchMethodException {
