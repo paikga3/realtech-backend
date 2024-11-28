@@ -1,5 +1,7 @@
 package realtech.api.front.service;
 
+import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -7,14 +9,18 @@ import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
+import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import realtech.api.common.exception.PostNotFoundException;
 import realtech.api.common.model.PagedResponse;
+import realtech.api.common.service.S3Service;
+import realtech.api.front.model.CreateReservationInquiryPostParams;
 import realtech.api.front.model.FetchReservationInquiriesParams;
 import realtech.api.front.model.FileItem;
 import realtech.api.front.model.ReservationInquiryPost;
@@ -41,9 +47,9 @@ public class ReservationInquiryService {
     
     @Autowired
     private ReservationInquiryRepository reservationInquiryRepository;
-    
+
     @Autowired
-    private CommentService commentService;
+    private S3Service s3Service;
     
     public PagedResponse<ReservationInquiryPost> fetchReservationInquiries(FetchReservationInquiriesParams rq) {
         
@@ -187,4 +193,68 @@ public class ReservationInquiryService {
 
         return detail;
     }
+    
+    @Transactional
+    public void createReservationInquiryPost(CreateReservationInquiryPostParams params, HttpServletRequest request) throws Exception {
+        
+        List<Attachment> attachments = new ArrayList<>();
+        if (params.getAttachments() != null) {
+            for (MultipartFile file : params.getAttachments()) {
+                String filePath = s3Service.uploadFile(file, AppUtil.generateAttachmentPath("reservation_inquiry"));
+                
+                Attachment attachment = new Attachment();
+                attachment.setDisplayFilename(file.getOriginalFilename());
+                attachment.setFileSizeKb(AppUtil.getFileSizeInKB(file));
+                attachment.setRefId(0);
+                attachment.setRefTable("reservation_inquiry");
+                attachment.setS3Filename(filePath);
+                
+                attachments.add(attachment);
+            }
+        }
+        
+        ReservationInquiry post = new ReservationInquiry();
+        post.setName(params.getName());
+        post.setContact(params.getContact());
+        post.setContent(params.getContent());
+        post.setPostalCode(params.getPostalCode());
+        post.setLotAddress(params.getLotAddress());
+        post.setRoadAddress(params.getRoadAddress());
+        post.setAddressDetail(params.getAddressDetail());
+        post.setInstallationDate(params.getInstallationDate());
+        post.setTvSize(params.getTvSize());
+        if ("Z".equals(params.getTvSize())) {
+            post.setTvSizeOther(params.getTvSizeOther());
+        }
+        post.setWallType(params.getWallType());
+        if ("Z".equals(params.getWallType())) {
+            post.setWallTypeOther(params.getWallTypeOther());
+        }
+        post.setBracketType(params.getBraketType());
+        if ("Z".equals(params.getBraketType())) {
+            post.setBraketTypeOther(params.getBraketTypeOther());
+        }
+        post.setSettopBoxEmbed(params.getSettopBoxEmbed());
+        
+        // 솔트 생성
+        byte[] salt = AppUtil.generateSalt();
+
+        // 해싱
+        String hashedPassword = AppUtil.hashPassword(params.getPassword(), salt);
+        String saltBase64 = Base64.getEncoder().encodeToString(salt);
+        post.setSalt(saltBase64);
+        post.setPassword(hashedPassword);
+        post.setIsPrivate(1);
+        post.setAuthorIp(AppUtil.getClientIpFromRequest(request));
+        post.setCreatedAt(AppUtil.getCurrentDateTime());
+        
+        ReservationInquiry savedPost = reservationInquiryRepository.save(post);
+        
+        attachments.forEach(a -> {
+            a.setRefId(savedPost.getInquiryId());
+        });
+        
+        attachmentRepository.saveAll(attachments);
+    }
+    
 }

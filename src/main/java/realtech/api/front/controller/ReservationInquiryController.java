@@ -1,13 +1,18 @@
 package realtech.api.front.controller;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import realtech.api.common.model.PagedResponse;
+import realtech.api.front.model.CreateReservationInquiryPostParams;
 import realtech.api.front.model.FetchReservationInquiriesParams;
 import realtech.api.front.model.ReservationInquiryPost;
 import realtech.api.front.model.ReservationInquiryPostDetail;
@@ -38,4 +43,12 @@ public class ReservationInquiryController {
         boolean isUpdateViewCount = purpose.equals("view");
         return reservationInquiryService.getReservationInquiryDetail(id, isUpdateViewCount);
     }
+    
+    // 게시물 등록 API
+    @PostMapping("/api/reservation-inquiry-post")
+    public void createReservationInquiryPost(@ModelAttribute CreateReservationInquiryPostParams params, HttpServletRequest request) throws Exception {
+        reservationInquiryService.createReservationInquiryPost(params, request);
+    }
+    
+    
 }
