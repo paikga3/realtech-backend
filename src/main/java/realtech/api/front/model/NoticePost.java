@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 @Data
-public class Review {
+public class NoticePost {
     private int id; // 공지사항 고유 ID
     private String title; // 제목
     private String authorName; // 작성자 이름
@@ -16,14 +16,11 @@ public class Review {
     @JsonProperty("isNew")
     private boolean isNew; // 신규 글 여부
     
-    @JsonProperty("isPrivate")
-    private boolean isPrivate; // 비밀글 여부
     
-    public Review(int id, String title, String authorName, String createdAt, boolean isPrivate) {
+    public NoticePost(int id, String title, String authorName, String createdAt) {
         this.id = id;
         this.title = title;
         this.authorName = authorName;
         this.createdAt = createdAt;
-        this.isPrivate = isPrivate;
     }
 }

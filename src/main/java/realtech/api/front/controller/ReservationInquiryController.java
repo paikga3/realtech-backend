@@ -53,9 +53,9 @@ public class ReservationInquiryController {
     }
     
     // 게시물 수정 API
-    @PutMapping("/api/reservation-inquiry-post")
-    public void updateReservationInquiryPost(@ModelAttribute CreateReservationInquiryPostParams params, HttpServletRequest request) throws Exception {
-        reservationInquiryService.updateReservationInquiryPost(params, request);
+    @PutMapping("/api/reservation-inquiry-post/{id}")
+    public void updateReservationInquiryPost(@PathVariable("id") int id, @ModelAttribute CreateReservationInquiryPostParams params, HttpServletRequest request) throws Exception {
+        reservationInquiryService.updateReservationInquiryPost(id, params, request);
     }
     
     // 게시물 삭제 API

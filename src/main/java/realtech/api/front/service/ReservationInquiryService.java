@@ -258,10 +258,10 @@ public class ReservationInquiryService {
         attachmentRepository.saveAll(attachments);
     }
     
-    public void updateReservationInquiryPost(CreateReservationInquiryPostParams params, HttpServletRequest request) throws Exception {
-        Optional<ReservationInquiry> postOpt = reservationInquiryRepository.findById(params.getId());
+    public void updateReservationInquiryPost(int id, CreateReservationInquiryPostParams params, HttpServletRequest request) throws Exception {
+        Optional<ReservationInquiry> postOpt = reservationInquiryRepository.findById(id);
         if (postOpt.isEmpty()) {
-            throw new PostNotFoundException("ID가 " + params.getId() + "인 게시글을 찾을 수 없습니다.");
+            throw new PostNotFoundException("ID가 " + id + "인 게시글을 찾을 수 없습니다.");
         }
         
         ReservationInquiry post = postOpt.get();

@@ -51,14 +51,21 @@ public class Comment implements Serializable {
 	@Column(name="is_deleted")
 	private int isDeleted;
 
+	@Column(name="is_private")
+	private int isPrivate;
+
 	@Column(name="parent_comment_id")
 	private int parentCommentId;
+
+	private String password;
 
 	@Column(name="ref_id")
 	private int refId;
 
 	@Column(name="ref_table")
 	private String refTable;
+
+	private String salt;
 
 	public Comment() {
 	}
@@ -135,12 +142,28 @@ public class Comment implements Serializable {
 		this.isDeleted = isDeleted;
 	}
 
+	public int getIsPrivate() {
+		return this.isPrivate;
+	}
+
+	public void setIsPrivate(int isPrivate) {
+		this.isPrivate = isPrivate;
+	}
+
 	public int getParentCommentId() {
 		return this.parentCommentId;
 	}
 
 	public void setParentCommentId(int parentCommentId) {
 		this.parentCommentId = parentCommentId;
+	}
+
+	public String getPassword() {
+		return this.password;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
 	}
 
 	public int getRefId() {
@@ -157,6 +180,14 @@ public class Comment implements Serializable {
 
 	public void setRefTable(String refTable) {
 		this.refTable = refTable;
+	}
+
+	public String getSalt() {
+		return this.salt;
+	}
+
+	public void setSalt(String salt) {
+		this.salt = salt;
 	}
 
 }
