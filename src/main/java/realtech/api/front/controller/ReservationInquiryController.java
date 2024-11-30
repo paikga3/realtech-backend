@@ -3,10 +3,12 @@ package realtech.api.front.controller;
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -49,6 +51,19 @@ public class ReservationInquiryController {
     public void createReservationInquiryPost(@ModelAttribute CreateReservationInquiryPostParams params, HttpServletRequest request) throws Exception {
         reservationInquiryService.createReservationInquiryPost(params, request);
     }
+    
+    // 게시물 수정 API
+    @PutMapping("/api/reservation-inquiry-post")
+    public void updateReservationInquiryPost(@ModelAttribute CreateReservationInquiryPostParams params, HttpServletRequest request) throws Exception {
+        reservationInquiryService.updateReservationInquiryPost(params, request);
+    }
+    
+    // 게시물 삭제 API
+    @DeleteMapping("/api/reservation-inquiry-post/{id}")
+    public void deleteReservationInquiryPost(@PathVariable("id") int id) {
+        reservationInquiryService.deleteReservationInquiryPost(id);
+    }
+    
     
     
 }

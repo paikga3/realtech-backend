@@ -3,6 +3,7 @@ package realtech.api.front.service;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -256,5 +257,99 @@ public class ReservationInquiryService {
         
         attachmentRepository.saveAll(attachments);
     }
+    
+    public void updateReservationInquiryPost(CreateReservationInquiryPostParams params, HttpServletRequest request) throws Exception {
+        Optional<ReservationInquiry> postOpt = reservationInquiryRepository.findById(params.getId());
+        if (postOpt.isEmpty()) {
+            throw new PostNotFoundException("ID가 " + params.getId() + "인 게시글을 찾을 수 없습니다.");
+        }
+        
+        ReservationInquiry post = postOpt.get();
+        post.setName(params.getName());
+        post.setContact(params.getContact());
+        post.setContent(params.getContent());
+        post.setPostalCode(params.getPostalCode());
+        post.setLotAddress(params.getLotAddress());
+        post.setRoadAddress(params.getRoadAddress());
+        post.setAddressDetail(params.getAddressDetail());
+        post.setInstallationDate(params.getInstallationDate());
+        post.setTvSize(params.getTvSize());
+        if ("Z".equals(params.getTvSize())) {
+            post.setTvSizeOther(params.getTvSizeOther());
+        }
+        post.setWallType(params.getWallType());
+        if ("Z".equals(params.getWallType())) {
+            post.setWallTypeOther(params.getWallTypeOther());
+        }
+        post.setBracketType(params.getBraketType());
+        if ("Z".equals(params.getBraketType())) {
+            post.setBraketTypeOther(params.getBraketTypeOther());
+        }
+        post.setSettopBoxEmbed(params.getSettopBoxEmbed());
+        
+        if (StringUtils.isNotEmpty(params.getPassword())) {
+            // 솔트 생성
+            byte[] salt = AppUtil.generateSalt();
+
+            // 해싱
+            String hashedPassword = AppUtil.hashPassword(params.getPassword(), salt);
+            String saltBase64 = Base64.getEncoder().encodeToString(salt);
+            post.setSalt(saltBase64);
+            post.setPassword(hashedPassword);
+        }
+        
+        // 수정내용 저장
+        reservationInquiryRepository.save(post);
+        
+        // 기존 첨부파일 삭제
+        List<Attachment> previousAttachments = attachmentRepository.findByRefTableAndRefId("reservation_inquiry", post.getInquiryId());
+        for (Attachment attachment : previousAttachments) {
+            s3Service.deleteFile(AppUtil.extractPathUsingString(attachment.getS3Filename()));
+            attachmentRepository.delete(attachment);
+        }
+        
+        
+        // 신규 첨부파일 등록
+        List<Attachment> attachments = new ArrayList<>();
+        if (params.getAttachments() != null) {
+            for (MultipartFile file : params.getAttachments()) {
+                String filePath = s3Service.uploadFile(file, AppUtil.generateAttachmentPath("reservation_inquiry"));
+                
+                Attachment attachment = new Attachment();
+                attachment.setDisplayFilename(file.getOriginalFilename());
+                attachment.setFileSizeKb(AppUtil.getFileSizeInKB(file));
+                attachment.setRefId(post.getInquiryId());
+                attachment.setRefTable("reservation_inquiry");
+                attachment.setS3Filename(filePath);
+                
+                attachments.add(attachment);
+            }
+        }
+        if (!attachments.isEmpty()) {
+            attachmentRepository.saveAll(attachments);
+        }
+    }
+    
+    public void deleteReservationInquiryPost(int id) {
+        Optional<ReservationInquiry> postOpt = reservationInquiryRepository.findById(id);
+        if (postOpt.isEmpty()) {
+            throw new PostNotFoundException("ID가 " + id + "인 게시글을 찾을 수 없습니다.");
+        }
+        
+        ReservationInquiry post = postOpt.get();
+        // 기존 첨부파일 삭제
+        List<Attachment> previousAttachments = attachmentRepository.findByRefTableAndRefId("reservation_inquiry", post.getInquiryId());
+        for (Attachment attachment : previousAttachments) {
+            // s3에서 첨부파일 삭제
+            s3Service.deleteFile(AppUtil.extractPathUsingString(attachment.getS3Filename()));
+            attachmentRepository.delete(attachment);
+        }
+
+        
+        // 게시글 삭제
+        reservationInquiryRepository.delete(post);
+    }
+    
+    
     
 }
