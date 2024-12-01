@@ -1,12 +1,9 @@
 package realtech.aspect;
 
-import java.lang.reflect.Method;
-
 import javax.servlet.http.HttpServletRequest;
 
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.Aspect;
-import org.aspectj.lang.annotation.Before;
 import org.springframework.stereotype.Component;
 
 import realtech.api.front.model.BaseCommentRequest;
@@ -22,7 +19,7 @@ public class JwtValidationAspect {
         this.httpServletRequest = httpServletRequest;
     }
 
-    @Before("execution(* realtech.api.front.controller.CommentController.*(..))")
+//    @Before("execution(* realtech.api.front.controller.CommentController.*(..))")
     public void validateToken(JoinPoint joinPoint) throws Exception {
         // Authorization 헤더 처리
         String authorizationHeader = httpServletRequest.getHeader("Authorization");
@@ -43,16 +40,4 @@ public class JwtValidationAspect {
         }
     }
 
-    private Method getTargetMethod(JoinPoint joinPoint) throws NoSuchMethodException {
-        String methodName = joinPoint.getSignature().getName();
-        Class<?> targetClass = joinPoint.getTarget().getClass();
-        Object[] args = joinPoint.getArgs();
-
-        for (Method method : targetClass.getMethods()) {
-            if (method.getName().equals(methodName) && method.getParameterCount() == args.length) {
-                return method;
-            }
-        }
-        throw new NoSuchMethodException("Method not found: " + methodName);
-    }
 }

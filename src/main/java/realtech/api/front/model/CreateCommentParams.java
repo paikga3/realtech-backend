@@ -9,4 +9,5 @@ public class CreateCommentParams extends BaseCommentRequest {
     private String authorName;
     private String content;
     private int parentCommentId;
+    private String password;
 }

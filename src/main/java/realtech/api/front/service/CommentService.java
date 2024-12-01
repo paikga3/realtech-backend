@@ -1,6 +1,7 @@
 package realtech.api.front.service;
 
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 
@@ -11,27 +12,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import realtech.api.common.exception.PostNotFoundException;
+import realtech.api.common.exception.UnauthorizedException;
 import realtech.api.front.model.CommentDetail;
 import realtech.api.front.model.CreateCommentParams;
 import realtech.api.front.model.UpdateCommentParams;
 import realtech.db.entity.Comment;
-import realtech.db.entity.CustomerReview;
-import realtech.db.entity.ReservationInquiry;
 import realtech.db.repository.CommentRepository;
-import realtech.db.repository.CustomerReviewRepository;
-import realtech.db.repository.ReservationInquiryRepository;
 import realtech.util.AppUtil;
 
 @Service
 public class CommentService {
     @Autowired
     private CommentRepository commentRepository;
-    
-    @Autowired
-    private ReservationInquiryRepository reservationInquiryRepository;
-    
-    @Autowired
-    private CustomerReviewRepository customerReviewRepository;
+
     
     public List<CommentDetail> getComments(String refTable, int refId) {
         List<Comment> rootComments = commentRepository.findByRefTableAndRefIdAndParentCommentIdOrderByCommentIdDesc(refTable, refId, 0);
@@ -52,6 +45,9 @@ public class CommentService {
             }
             detail.setLevel(level);
             detail.setIsDeleted(comment.getIsDeleted());
+            detail.setIsAdmin(comment.getIsAdmin());
+            detail.setRefTable(comment.getRefTable());
+            detail.setRefId(comment.getRefId());
 
             // 자식 댓글 조회
             List<Comment> childComments = commentRepository.findByRefTableAndRefIdAndParentCommentIdOrderByCommentIdDesc(
@@ -64,22 +60,10 @@ public class CommentService {
     }
     
     
-    public void addComment(CreateCommentParams params, HttpServletRequest request) {
+    public void addComment(CreateCommentParams params, HttpServletRequest request) throws Exception {
         String authorName = StringUtils.isNotEmpty(params.getAuthorName()) ? params.getAuthorName() : "unknown";
-        if ("reservation_inquiry".equals(params.getRefTable())) {
-            Optional<ReservationInquiry> postOpt = reservationInquiryRepository.findById(params.getRefId());
-            if (postOpt.isEmpty()) {
-                throw new PostNotFoundException("ID가 " + params.getRefId() + "인 예약문의 게시글을 찾을 수 없습니다.");
-            }
-            ReservationInquiry post = postOpt.get();
-            authorName = post.getName();
-        } else if ("customer_review".equals(params.getRefTable())) {
-            Optional<CustomerReview> postOpt = customerReviewRepository.findById(params.getRefId());
-            if (postOpt.isEmpty()) {
-                throw new PostNotFoundException("ID가 " + params.getRefId() + "인 고객후기 게시글을 찾을 수 없습니다.");
-            }
-            CustomerReview post = postOpt.get();
-            authorName = post.getAuthorName();
+        if ("리얼테크".equals(authorName)) {
+            throw new UnauthorizedException("관리자 이름으로 댓글등록을 할 수 없습니다.");
         }
         
         
@@ -92,17 +76,35 @@ public class CommentService {
         c.setRefId(params.getRefId());
         c.setRefTable(params.getRefTable());
         c.setCreatedAt(AppUtil.getCurrentDateTime());
+
+        
+        // 솔트 생성
+        byte[] salt = AppUtil.generateSalt();
+        
+        // 해싱
+        String hashedPassword = AppUtil.hashPassword(params.getPassword(), salt);
+        String saltBase64 = Base64.getEncoder().encodeToString(salt);
+        c.setSalt(saltBase64);
+        c.setPassword(hashedPassword);
         
         commentRepository.save(c);
     }
 
-    public void updateComment(UpdateCommentParams params, HttpServletRequest request) {
+    public void updateComment(UpdateCommentParams params, HttpServletRequest request) throws Exception {
         Optional<Comment> commentOpt = commentRepository.findById(params.getCommentId());
         if (commentOpt.isEmpty()) {
             throw new PostNotFoundException(String.format("존재하지 않는 댓글입니다.(%d)", params.getCommentId()));
         }
         
         Comment c = commentOpt.get();
+        
+        // 솔트를 디코딩
+        byte[] salt = Base64.getDecoder().decode(c.getSalt());
+        String hashedPassword = AppUtil.hashPassword(params.getPassword(), salt);
+        if (!hashedPassword.equals(c.getPassword())) {
+            throw new UnauthorizedException("댓글 비밀번호가 일치하지 않습니다.");
+        }
+        
         c.setEditorIp(AppUtil.getClientIpFromRequest(request));
         c.setEditorName(c.getAuthorName());
         c.setEditedAt(AppUtil.getCurrentDateTime());
@@ -111,13 +113,21 @@ public class CommentService {
         commentRepository.save(c);
     }
     
-    public void deleteComment(UpdateCommentParams params, HttpServletRequest request) {
+    public void deleteComment(UpdateCommentParams params, HttpServletRequest request) throws Exception {
         Optional<Comment> commentOpt = commentRepository.findById(params.getCommentId());
         if (commentOpt.isEmpty()) {
             throw new PostNotFoundException(String.format("존재하지 않는 댓글입니다.(%d)", params.getCommentId()));
         }
         
         Comment c = commentOpt.get();
+        
+        // 솔트를 디코딩
+        byte[] salt = Base64.getDecoder().decode(c.getSalt());
+        String hashedPassword = AppUtil.hashPassword(params.getPassword(), salt);
+        if (!hashedPassword.equals(c.getPassword())) {
+            throw new UnauthorizedException("댓글 비밀번호가 일치하지 않습니다.");
+        }
+        
         c.setEditorIp(AppUtil.getClientIpFromRequest(request));
         c.setEditorName(c.getAuthorName());
         c.setEditedAt(AppUtil.getCurrentDateTime());

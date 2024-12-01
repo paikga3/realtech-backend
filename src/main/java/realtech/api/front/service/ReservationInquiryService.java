@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import realtech.api.common.exception.PostNotFoundException;
+import realtech.api.common.exception.UnauthorizedException;
 import realtech.api.common.model.PagedResponse;
 import realtech.api.common.service.S3Service;
 import realtech.api.front.model.CreateReservationInquiryPostParams;
@@ -197,6 +198,9 @@ public class ReservationInquiryService {
     
     @Transactional
     public void createReservationInquiryPost(CreateReservationInquiryPostParams params, HttpServletRequest request) throws Exception {
+        if ("리얼테크".equals(params.getName())) {
+            throw new UnauthorizedException("관리자 이름으로 게시물을 등록할 수 없습니다.");
+        }
         
         List<Attachment> attachments = new ArrayList<>();
         if (params.getAttachments() != null) {

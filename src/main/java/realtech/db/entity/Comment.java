@@ -48,6 +48,9 @@ public class Comment implements Serializable {
 	@Column(name="editor_name")
 	private String editorName;
 
+	@Column(name="is_admin")
+	private int isAdmin;
+
 	@Column(name="is_deleted")
 	private int isDeleted;
 
@@ -132,6 +135,14 @@ public class Comment implements Serializable {
 
 	public void setEditorName(String editorName) {
 		this.editorName = editorName;
+	}
+
+	public int getIsAdmin() {
+		return this.isAdmin;
+	}
+
+	public void setIsAdmin(int isAdmin) {
+		this.isAdmin = isAdmin;
 	}
 
 	public int getIsDeleted() {

@@ -21,4 +21,9 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleMaxSizeException(MaxUploadSizeExceededException e) {
         return ResponseEntity.badRequest().body(new ErrorResponse("파일 크기가 허용된 최대 크기(1MB)를 초과했습니다."));
     }
+    
+    @ExceptionHandler(UnauthorizedException.class)
+    public ResponseEntity<ErrorResponse> handleUnauthorizedException(UnauthorizedException ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponse(ex.getMessage()));
+    }
 }

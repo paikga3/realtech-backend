@@ -15,7 +15,9 @@ import realtech.api.front.model.CommentListResponse;
 import realtech.api.front.model.CreateCommentParams;
 import realtech.api.front.model.UpdateCommentParams;
 import realtech.api.front.service.CommentService;
+import realtech.util.AesEncryptionUtil;
 import realtech.util.AppUtil;
+import realtech.util.JwtValidator;
 
 @RestController
 public class CommentController {
@@ -24,27 +26,38 @@ public class CommentController {
     private CommentService commentService;
     
     @GetMapping("/api/comment")
-    public CommentListResponse getComments(BaseCommentRequest request) {
+    public CommentListResponse getComments(BaseCommentRequest params, HttpServletRequest request) throws Exception {
+        if ("reservation_inquiry".equals(params.getRefTable())) {
+            // Authorization 헤더 처리
+            String authorizationHeader = request.getHeader("Authorization");
+            if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
+                throw new RuntimeException("Missing or invalid Authorization header");
+            }
 
+            String token = AesEncryptionUtil.decode(authorizationHeader.substring(7));
+            JwtValidator.validateToken(token, params.getRefTable(), params.getRefId());
+        }
+        
+        
         CommentListResponse response = new CommentListResponse();
-        response.setComments(commentService.getComments(request.getRefTable(), request.getRefId()));
+        response.setComments(commentService.getComments(params.getRefTable(), params.getRefId()));
         response.setTotalComments(AppUtil.countTotalComments(response.getComments()));
         
         return response;
     }
     
     @PostMapping("/api/comment")
-    public void addComment(@RequestBody CreateCommentParams params, HttpServletRequest request) {
+    public void addComment(@RequestBody CreateCommentParams params, HttpServletRequest request) throws Exception {
         commentService.addComment(params, request);
     }
     
     @PutMapping("/api/comment")
-    public void updateComment(@RequestBody UpdateCommentParams params, HttpServletRequest request) {
+    public void updateComment(@RequestBody UpdateCommentParams params, HttpServletRequest request) throws Exception {
         commentService.updateComment(params, request);
     }
     
     @DeleteMapping("/api/comment")
-    public void deleteComment(@RequestBody UpdateCommentParams params, HttpServletRequest request) {
+    public void deleteComment(@RequestBody UpdateCommentParams params, HttpServletRequest request) throws Exception {
         commentService.deleteComment(params, request);
     }
 }

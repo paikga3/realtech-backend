@@ -13,5 +13,8 @@ public class CommentDetail {
     private String createdAt;
     private int level;
     private int isDeleted;
+    private int isAdmin;
+    private String refTable;
+    private int refId;
     private List<CommentDetail> replies; // 자식 댓글 리스트
 }

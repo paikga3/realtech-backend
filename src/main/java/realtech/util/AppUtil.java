@@ -273,7 +273,7 @@ public class AppUtil {
 
     // 단일 댓글과 그 자식 댓글의 수를 재귀적으로 계산
     private static int countCommentAndReplies(CommentDetail comment) {
-        int count = 1; // 현재 댓글 포함
+        int count = comment.getIsDeleted() == 0 ? 1 : 0; // 현재 댓글 포함
         if (comment.getReplies() != null) {
             for (CommentDetail reply : comment.getReplies()) {
                 count += countCommentAndReplies(reply); // 자식 댓글의 수 누적

@@ -8,4 +8,5 @@ import lombok.EqualsAndHashCode;
 public class UpdateCommentParams extends BaseCommentRequest {
     private int commentId;
     private String content;
+    private String password;
 }
