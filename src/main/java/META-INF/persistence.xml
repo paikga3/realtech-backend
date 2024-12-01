@@ -10,7 +10,6 @@
 		<class>realtech.db.entity.CeilingTvPost</class>
 		<class>realtech.db.entity.WallTvPost</class>
 		<class>realtech.db.entity.Notice</class>
-		<class>realtech.db.entity.Account</class>
 		<class>realtech.db.entity.AccountRole</class>
 		<class>realtech.db.entity.AccountRoleMap</class>
 		<class>realtech.db.entity.WebsiteMeta</class>
@@ -18,5 +17,6 @@
 		<class>realtech.db.entity.CustomerReview</class>
 		<class>realtech.db.entity.ReservationInquiry</class>
 		<class>realtech.db.entity.Comment</class>
+		<class>realtech.db.entity.Account</class>
 	</persistence-unit>
 </persistence>

@@ -34,6 +34,8 @@ public class Account implements Serializable {
 	@Column(name="phone_number")
 	private String phoneNumber;
 
+	private String salt;
+
 	private String username;
 
 	public Account() {
@@ -77,6 +79,14 @@ public class Account implements Serializable {
 
 	public void setPhoneNumber(String phoneNumber) {
 		this.phoneNumber = phoneNumber;
+	}
+
+	public String getSalt() {
+		return this.salt;
+	}
+
+	public void setSalt(String salt) {
+		this.salt = salt;
 	}
 
 	public String getUsername() {

@@ -37,10 +37,10 @@ public class ReservationInquiryController {
     @GetMapping("/api/reservation-inquiry-post/{id}")
     public ReservationInquiryPostDetail getReservationInquiryPostDetail(
             @PathVariable("id") int id, 
-            @RequestHeader("Authorization") String authorizationHeader, 
+            @RequestHeader("X-Guest-Token") String guestHeader, 
             @RequestParam(value = "edit", defaultValue = "view") String purpose) throws Exception {
         // 토큰 검증 로직 (JWT 파싱 및 검증)
-        String token = AesEncryptionUtil.decode(authorizationHeader.substring(7));
+        String token = AesEncryptionUtil.decode(guestHeader.substring(7));
         JwtValidator.validateToken(token, "reservation_inquiry", id);
         boolean isUpdateViewCount = purpose.equals("view");
         return reservationInquiryService.getReservationInquiryDetail(id, isUpdateViewCount);
