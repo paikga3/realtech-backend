@@ -281,4 +281,25 @@ public class AppUtil {
         }
         return count;
     }
+    
+    // 전체 댓글 수를 계산하는 메서드
+    public static int countAdminComments(List<CommentDetail> comments) {
+        int total = 0;
+        for (CommentDetail comment : comments) {
+            total += countAdminCommentAndReplies(comment);
+        }
+        return total;
+    }
+    
+    // 단일 댓글과 그 자식 댓글의 수를 재귀적으로 계산
+    private static int countAdminCommentAndReplies(CommentDetail comment) {
+        int count = comment.getIsDeleted() == 0 && comment.getIsAdmin() == 1 ? 1 : 0; // 현재 댓글 포함
+
+        if (comment.getReplies() != null) {
+            for (CommentDetail reply : comment.getReplies()) {
+                count += countAdminCommentAndReplies(reply); // 자식 댓글의 수 누적
+            }
+        }
+        return count;
+    }
 }

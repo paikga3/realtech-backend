@@ -20,18 +20,18 @@ import realtech.api.common.exception.PostNotFoundException;
 import realtech.api.common.exception.UnauthorizedException;
 import realtech.api.common.model.PagedResponse;
 import realtech.api.common.service.S3Service;
+import realtech.api.front.model.CommentListResponse;
 import realtech.api.front.model.CreateReviewParams;
 import realtech.api.front.model.FetchReviewsParams;
 import realtech.api.front.model.FileItem;
 import realtech.api.front.model.ReviewDetail;
 import realtech.api.front.model.ReviewPost;
 import realtech.db.entity.Attachment;
-import realtech.db.entity.Comment;
 import realtech.db.entity.CustomerReview;
 import realtech.db.repository.AttachmentRepository;
-import realtech.db.repository.CommentRepository;
 import realtech.db.repository.CustomerReviewRepository;
 import realtech.util.AppUtil;
+import realtech.util.SecurityUtil;
 
 @Service
 public class ReviewService {
@@ -43,14 +43,13 @@ public class ReviewService {
     private AttachmentRepository attachmentRepository;
     
     @Autowired
-    private CommentRepository commentRepository;
-    
-    @Autowired
     private S3Service s3Service;
     
     @Autowired
     private CustomerReviewRepository customerReviewRepository;
     
+    @Autowired
+    private CommentService commentService;
     
     /**
      * 고객후기 리스트 가져오기
@@ -101,17 +100,14 @@ public class ReviewService {
         
         List<ReviewPost> posts = listQuery.getResultList();
         for (ReviewPost post : posts) {
-            List<Comment> comments = commentRepository.findByRefTableAndRefId("customer_review", post.getId())
-                    .stream()
-                    .filter(a -> {
-                        return a.getIsDeleted() == 0;
-                    })
-                    .collect(Collectors.toList());
+            CommentListResponse response = new CommentListResponse();
+            response.setComments(commentService.getComments("customer_review", post.getId()));
+            response.setTotalComments(AppUtil.countTotalComments(response.getComments()));
+            response.setAdminComments(AppUtil.countAdminComments(response.getComments()));
             
-
             List<Attachment> attachments = attachmentRepository.findByRefTableAndRefId("customer_review", post.getId());
             
-            post.setCommentCount(comments.size());
+            post.setCommentCount(response.getTotalComments());
             post.setHasAttachment(!attachments.isEmpty());
 
             
@@ -204,6 +200,14 @@ public class ReviewService {
     }
     
     public void updateReview(int id, CreateReviewParams params, HttpServletRequest request) throws Exception {
+        if (!SecurityUtil.isAdmin()) {
+            int adminComments = AppUtil.countAdminComments(commentService.getComments("customer_review", id));
+            if (adminComments > 0) {
+                throw new UnauthorizedException("관리자 댓글이 포함된 게시물은 수정할 수 없습니다.");
+            }
+        }
+        
+        
         Optional<CustomerReview> postOpt = customerReviewRepository.findById(id);
         if (postOpt.isEmpty()) {
             throw new PostNotFoundException("ID가 " + id + "인 게시글을 찾을 수 없습니다.");
@@ -247,6 +251,14 @@ public class ReviewService {
     }
     
     public void deleteReview(int id) {
+        if (!SecurityUtil.isAdmin()) {
+            int adminComments = AppUtil.countAdminComments(commentService.getComments("customer_review", id));
+            if (adminComments > 0) {
+                throw new UnauthorizedException("관리자 댓글이 포함된 게시물은 삭제할 수 없습니다.");
+            }
+        }
+        
+        
         Optional<CustomerReview> postOpt = customerReviewRepository.findById(id);
         if (postOpt.isEmpty()) {
             throw new PostNotFoundException("ID가 " + id + "인 게시글을 찾을 수 없습니다.");

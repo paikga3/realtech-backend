@@ -22,16 +22,15 @@ import realtech.api.common.exception.PostNotFoundException;
 import realtech.api.common.exception.UnauthorizedException;
 import realtech.api.common.model.PagedResponse;
 import realtech.api.common.service.S3Service;
+import realtech.api.front.model.CommentListResponse;
 import realtech.api.front.model.CreateReservationInquiryPostParams;
 import realtech.api.front.model.FetchReservationInquiriesParams;
 import realtech.api.front.model.FileItem;
 import realtech.api.front.model.ReservationInquiryPost;
 import realtech.api.front.model.ReservationInquiryPostDetail;
 import realtech.db.entity.Attachment;
-import realtech.db.entity.Comment;
 import realtech.db.entity.ReservationInquiry;
 import realtech.db.repository.AttachmentRepository;
-import realtech.db.repository.CommentRepository;
 import realtech.db.repository.ReservationInquiryRepository;
 import realtech.util.AppUtil;
 import realtech.util.SecurityUtil;
@@ -46,13 +45,13 @@ public class ReservationInquiryService {
     private AttachmentRepository attachmentRepository;
     
     @Autowired
-    private CommentRepository commentRepository;
-    
-    @Autowired
     private ReservationInquiryRepository reservationInquiryRepository;
 
     @Autowired
     private S3Service s3Service;
+    
+    @Autowired
+    private CommentService commentService;
     
     public PagedResponse<ReservationInquiryPost> fetchReservationInquiries(FetchReservationInquiriesParams rq) {
         
@@ -92,24 +91,18 @@ public class ReservationInquiryService {
         
         List<ReservationInquiryPost> posts = listQuery.getResultList();
         for (ReservationInquiryPost post : posts) {
-            List<Comment> comments = commentRepository.findByRefTableAndRefId("reservation_inquiry", post.getId())
-                    .stream()
-                    .filter(a -> {
-                        return a.getIsDeleted() == 0;
-                    })
-                    .collect(Collectors.toList());
             
-            List<Comment> adminComments = comments
-                    .stream()
-                    .filter(a -> {
-                        return "리얼테크".equals(a.getAuthorName());
-                    })
-                    .collect(Collectors.toList());
+            CommentListResponse response = new CommentListResponse();
+            response.setComments(commentService.getComments("reservation_inquiry", post.getId()));
+            response.setTotalComments(AppUtil.countTotalComments(response.getComments()));
+            response.setAdminComments(AppUtil.countAdminComments(response.getComments()));
+            
+
             List<Attachment> attachments = attachmentRepository.findByRefTableAndRefId("reservation_inquiry", post.getId());
             
-            post.setCommentCount(comments.size());
+            post.setCommentCount(response.getTotalComments());
             post.setHasAttachment(!attachments.isEmpty());
-            post.setStatus(adminComments.isEmpty() ? "Pending" : "Answered");
+            post.setStatus(response.getAdminComments() == 0 ? "Pending" : "Answered");
             
             // 등록한지 10분 이내인 경우 신규글 마킹
             post.setNew(AppUtil.isNewPost(post.getCreatedAt()));
@@ -293,14 +286,9 @@ public class ReservationInquiryService {
     
     public void updateReservationInquiryPost(int id, CreateReservationInquiryPostParams params, HttpServletRequest request) throws Exception {
         if (!SecurityUtil.isAdmin()) {
-            List<Comment> comments = commentRepository.findByRefTableAndRefId("reservation_inquiry", id)
-                    .stream()
-                    .filter(a -> {
-                        return a.getIsDeleted() == 0;
-                    })
-                    .collect(Collectors.toList());
-            if (comments.size() > 0) {
-                throw new UnauthorizedException("댓글이 포함된 게시물은 수정할 수 없습니다.");
+            int adminComments = AppUtil.countAdminComments(commentService.getComments("reservation_inquiry", id));
+            if (adminComments > 0) {
+                throw new UnauthorizedException("관리자 댓글이 포함된 게시물은 수정할 수 없습니다.");
             }
         }
         
@@ -377,17 +365,10 @@ public class ReservationInquiryService {
     }
     
     public void deleteReservationInquiryPost(int id) {
-        
-        
         if (!SecurityUtil.isAdmin()) {
-            List<Comment> comments = commentRepository.findByRefTableAndRefId("reservation_inquiry", id)
-                    .stream()
-                    .filter(a -> {
-                        return a.getIsDeleted() == 0;
-                    })
-                    .collect(Collectors.toList());
-            if (comments.size() > 0) {
-                throw new UnauthorizedException("댓글이 포함된 게시물은 삭제할 수 없습니다.");
+            int adminComments = AppUtil.countAdminComments(commentService.getComments("reservation_inquiry", id));
+            if (adminComments > 0) {
+                throw new UnauthorizedException("관리자 댓글이 포함된 게시물은 삭제할 수 없습니다.");
             }
         }
         

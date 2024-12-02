@@ -8,4 +8,5 @@ import lombok.Data;
 public class CommentListResponse {
     private List<CommentDetail> comments;
     private int totalComments;
+    private int adminComments;
 }

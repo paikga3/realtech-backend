@@ -43,7 +43,7 @@ public class CommentController {
         CommentListResponse response = new CommentListResponse();
         response.setComments(commentService.getComments(params.getRefTable(), params.getRefId()));
         response.setTotalComments(AppUtil.countTotalComments(response.getComments()));
-        
+        response.setAdminComments(AppUtil.countAdminComments(response.getComments()));
         return response;
     }
     
