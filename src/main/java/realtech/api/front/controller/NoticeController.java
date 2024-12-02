@@ -40,19 +40,19 @@ public class NoticeController {
     }
     
     // 게시물 등록 API
-    @PostMapping("/api/notice-post")
+    @PostMapping("/api/admin/notice-post")
     public void createNotice(@ModelAttribute CreateNoticeParams params, HttpServletRequest request) throws Exception {
         noticeService.createNotice(params, request);
     }
     
     // 게시물 수정 API
-    @PutMapping("/api/notice-post/{id}")
+    @PutMapping("/api/admin/notice-post/{id}")
     public void updateNotice(@PathVariable("id") int id, @ModelAttribute CreateNoticeParams params, HttpServletRequest request) throws Exception {
         noticeService.updateNotice(id, params, request);
     }
     
     // 게시물 삭제 API
-    @DeleteMapping("/api/notice-post/{id}")
+    @DeleteMapping("/api/admin/notice-post/{id}")
     public void deleteNotice(@PathVariable("id") int id) {
         noticeService.deleteNotice(id);
     }

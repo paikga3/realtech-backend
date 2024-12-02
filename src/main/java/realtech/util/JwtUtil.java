@@ -9,13 +9,13 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 
 public class JwtUtil {
-    private static final String SECRET_KEY = "hbVyncKhHfzB9Tjt7ujG2OK8Lq49NUF69Oz44tbduw";
+    public static final String SECRET_KEY = "hbVyncKhHfzB9Tjt7ujG2OK8Lq49NUF69Oz44tbduw";
 
     public static Key getSigningKey() {
         return Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
     }
 
-    public static String generateToken(String boardType, int postId) {
+    public static String generatePostToken(String boardType, int postId) {
         Instant now = Instant.now();
 
         return Jwts.builder()

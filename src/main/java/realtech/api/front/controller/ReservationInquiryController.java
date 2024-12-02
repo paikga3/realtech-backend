@@ -21,6 +21,7 @@ import realtech.api.front.model.ReservationInquiryPostDetail;
 import realtech.api.front.service.ReservationInquiryService;
 import realtech.util.AesEncryptionUtil;
 import realtech.util.JwtValidator;
+import realtech.util.SecurityUtil;
 
 @RestController
 public class ReservationInquiryController {
@@ -30,6 +31,7 @@ public class ReservationInquiryController {
     
     @GetMapping("/api/reservation-inquiry-post")
     public PagedResponse<ReservationInquiryPost> fetchReservationInquiries(FetchReservationInquiriesParams rq) {
+
         return reservationInquiryService.fetchReservationInquiries(rq);
     }
     
@@ -37,11 +39,15 @@ public class ReservationInquiryController {
     @GetMapping("/api/reservation-inquiry-post/{id}")
     public ReservationInquiryPostDetail getReservationInquiryPostDetail(
             @PathVariable("id") int id, 
-            @RequestHeader("X-Guest-Token") String guestHeader, 
+            @RequestHeader(name = "X-Guest-Token", required = false) String guestHeader, 
             @RequestParam(value = "edit", defaultValue = "view") String purpose) throws Exception {
-        // 토큰 검증 로직 (JWT 파싱 및 검증)
-        String token = AesEncryptionUtil.decode(guestHeader.substring(7));
-        JwtValidator.validateToken(token, "reservation_inquiry", id);
+        
+        if (!SecurityUtil.isAdmin()) {
+            // 토큰 검증 로직 (JWT 파싱 및 검증)
+            String token = AesEncryptionUtil.decode(guestHeader.substring(7));
+            JwtValidator.validatePostToken(token, "reservation_inquiry", id);
+        }
+        
         boolean isUpdateViewCount = purpose.equals("view");
         return reservationInquiryService.getReservationInquiryDetail(id, isUpdateViewCount);
     }
@@ -54,13 +60,23 @@ public class ReservationInquiryController {
     
     // 게시물 수정 API
     @PutMapping("/api/reservation-inquiry-post/{id}")
-    public void updateReservationInquiryPost(@PathVariable("id") int id, @ModelAttribute CreateReservationInquiryPostParams params, HttpServletRequest request) throws Exception {
+    public void updateReservationInquiryPost(@PathVariable("id") int id, @ModelAttribute CreateReservationInquiryPostParams params, HttpServletRequest request, @RequestHeader(name = "X-Guest-Token", required = false) String guestHeader) throws Exception {
+        if (!SecurityUtil.isAdmin()) {
+            // 토큰 검증 로직 (JWT 파싱 및 검증)
+            String token = AesEncryptionUtil.decode(guestHeader.substring(7));
+            JwtValidator.validatePostToken(token, "reservation_inquiry", id);
+        }
         reservationInquiryService.updateReservationInquiryPost(id, params, request);
     }
     
     // 게시물 삭제 API
     @DeleteMapping("/api/reservation-inquiry-post/{id}")
-    public void deleteReservationInquiryPost(@PathVariable("id") int id) {
+    public void deleteReservationInquiryPost(@PathVariable("id") int id, @RequestHeader(name = "X-Guest-Token", required = false) String guestHeader) throws Exception {
+        if (!SecurityUtil.isAdmin()) {
+            // 토큰 검증 로직 (JWT 파싱 및 검증)
+            String token = AesEncryptionUtil.decode(guestHeader.substring(7));
+            JwtValidator.validatePostToken(token, "reservation_inquiry", id);
+        }
         reservationInquiryService.deleteReservationInquiryPost(id);
     }
     

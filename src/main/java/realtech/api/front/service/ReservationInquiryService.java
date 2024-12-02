@@ -34,6 +34,7 @@ import realtech.db.repository.AttachmentRepository;
 import realtech.db.repository.CommentRepository;
 import realtech.db.repository.ReservationInquiryRepository;
 import realtech.util.AppUtil;
+import realtech.util.SecurityUtil;
 
 @Service
 public class ReservationInquiryService {
@@ -116,23 +117,51 @@ public class ReservationInquiryService {
             
             String contact = post.getContact();
             StringBuffer dashContact = new StringBuffer();
-            if (contact.length() == 11) {
-                dashContact.append(contact.substring(0, 3))
-                .append("-")
-                .append(contact.substring(3, 7))
-                .append("-")
-                .append(contact.substring(7));
+            if (SecurityUtil.isAdmin()) {
+                if (contact.length() == 11) {
+                    dashContact.append(contact.substring(0, 3))
+                    .append("-")
+                    .append(contact.substring(3, 7))
+                    .append("-")
+                    .append(contact.substring(7));
+                    
+                    post.setContact(dashContact.toString());
+                } else if (contact.length() == 10) {
+                    dashContact.append(contact.substring(0, 3))
+                    .append("-")
+                    .append(contact.substring(3, 6))
+                    .append("-")
+                    .append(contact.substring(6));
+                    
+                    post.setContact(dashContact.toString());
+                }
+            } else {
+                if (contact.length() == 11) {
+                    dashContact.append(contact.substring(0, 3))
+                    .append("-****-****");
+                    
+                    post.setContact(dashContact.toString());
+                } else if (contact.length() == 10) {
+                    dashContact.append(contact.substring(0, 3))
+                    .append("-***-****");
+                    
+                    post.setContact(dashContact.toString());
+                }
                 
-                post.setContact(dashContact.toString());
-            } else if (contact.length() == 10) {
-                dashContact.append(contact.substring(0, 3))
-                .append("-")
-                .append(contact.substring(3, 6))
-                .append("-")
-                .append(contact.substring(6));
+                String name = post.getName();
+                StringBuffer maskedName = new StringBuffer();
+                for (int i=0; i<name.length(); i++) {
+                    if (i == 0) {
+                        maskedName.append(name.charAt(i));
+                    } else {
+                        maskedName.append("*");
+                    }
+                }
                 
-                post.setContact(dashContact.toString());
+                post.setName(maskedName.toString());
             }
+            
+            
         }
         
         PagedResponse<ReservationInquiryPost> pr = new PagedResponse<>();
@@ -263,6 +292,19 @@ public class ReservationInquiryService {
     }
     
     public void updateReservationInquiryPost(int id, CreateReservationInquiryPostParams params, HttpServletRequest request) throws Exception {
+        if (!SecurityUtil.isAdmin()) {
+            List<Comment> comments = commentRepository.findByRefTableAndRefId("reservation_inquiry", id)
+                    .stream()
+                    .filter(a -> {
+                        return a.getIsDeleted() == 0;
+                    })
+                    .collect(Collectors.toList());
+            if (comments.size() > 0) {
+                throw new UnauthorizedException("댓글이 포함된 게시물은 수정할 수 없습니다.");
+            }
+        }
+        
+        
         Optional<ReservationInquiry> postOpt = reservationInquiryRepository.findById(id);
         if (postOpt.isEmpty()) {
             throw new PostNotFoundException("ID가 " + id + "인 게시글을 찾을 수 없습니다.");
@@ -335,6 +377,20 @@ public class ReservationInquiryService {
     }
     
     public void deleteReservationInquiryPost(int id) {
+        
+        
+        if (!SecurityUtil.isAdmin()) {
+            List<Comment> comments = commentRepository.findByRefTableAndRefId("reservation_inquiry", id)
+                    .stream()
+                    .filter(a -> {
+                        return a.getIsDeleted() == 0;
+                    })
+                    .collect(Collectors.toList());
+            if (comments.size() > 0) {
+                throw new UnauthorizedException("댓글이 포함된 게시물은 삭제할 수 없습니다.");
+            }
+        }
+        
         Optional<ReservationInquiry> postOpt = reservationInquiryRepository.findById(id);
         if (postOpt.isEmpty()) {
             throw new PostNotFoundException("ID가 " + id + "인 게시글을 찾을 수 없습니다.");

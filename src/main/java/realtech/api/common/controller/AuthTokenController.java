@@ -23,7 +23,7 @@ public class AuthTokenController {
     private AuthTokenService authTokenService;
     
     @GetMapping("/api/{boardType}/{postId}/validate-password")
-    public ResponseEntity<?> validatePassword(
+    public ResponseEntity<?> validatePostPassword(
             @PathVariable String boardType,
             @PathVariable int postId,
             PostPasswordRequest request) throws Exception {
@@ -33,16 +33,16 @@ public class AuthTokenController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponse("비밀번호가 틀립니다."));
         }
         
-        String token = AesEncryptionUtil.encode(JwtUtil.generateToken(boardType, postId));
+        String token = AesEncryptionUtil.encode(JwtUtil.generatePostToken(boardType, postId));
         return ResponseEntity.ok(new PostPasswordResponse(token));
     }
     
-    @GetMapping("/api/validate-token")
-    public ResponseEntity<Boolean> validateToken(ValidateTokenRequest request) {
+    @GetMapping("/api/validate-post-token")
+    public ResponseEntity<Boolean> validatePostToken(ValidateTokenRequest request) {
         try {
             String decodeToken = AesEncryptionUtil.decode(request.getToken());
             // JwtValidator.validateToken 호출
-            JwtValidator.validateToken(decodeToken, request.getBoardType(), request.getPostId());
+            JwtValidator.validatePostToken(decodeToken, request.getBoardType(), request.getPostId());
             // 예외가 발생하지 않으면 true 반환
             return ResponseEntity.ok(true);
         } catch (Exception e) {

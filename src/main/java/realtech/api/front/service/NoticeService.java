@@ -166,6 +166,7 @@ public class NoticeService {
     
     
     public void createNotice(CreateNoticeParams params, HttpServletRequest request) throws Exception {
+
         List<Attachment> attachments = new ArrayList<>();
         if (params.getAttachments() != null) {
             for (MultipartFile file : params.getAttachments()) {

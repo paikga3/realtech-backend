@@ -18,6 +18,7 @@ import realtech.api.front.service.CommentService;
 import realtech.util.AesEncryptionUtil;
 import realtech.util.AppUtil;
 import realtech.util.JwtValidator;
+import realtech.util.SecurityUtil;
 
 @RestController
 public class CommentController {
@@ -27,7 +28,7 @@ public class CommentController {
     
     @GetMapping("/api/comment")
     public CommentListResponse getComments(BaseCommentRequest params, HttpServletRequest request) throws Exception {
-        if ("reservation_inquiry".equals(params.getRefTable())) {
+        if (!SecurityUtil.isAdmin() && "reservation_inquiry".equals(params.getRefTable())) {
             // Authorization 헤더 처리
             String authorizationHeader = request.getHeader("Authorization");
             if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
@@ -35,7 +36,7 @@ public class CommentController {
             }
 
             String token = AesEncryptionUtil.decode(authorizationHeader.substring(7));
-            JwtValidator.validateToken(token, params.getRefTable(), params.getRefId());
+            JwtValidator.validatePostToken(token, params.getRefTable(), params.getRefId());
         }
         
         

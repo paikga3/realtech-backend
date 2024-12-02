@@ -19,6 +19,7 @@ import realtech.api.front.model.UpdateCommentParams;
 import realtech.db.entity.Comment;
 import realtech.db.repository.CommentRepository;
 import realtech.util.AppUtil;
+import realtech.util.SecurityUtil;
 
 @Service
 public class CommentService {
@@ -69,7 +70,12 @@ public class CommentService {
         
         Comment c = new Comment();
         c.setAuthorIp(AppUtil.getClientIpFromRequest(request));
-        c.setAuthorName(authorName);
+        if (SecurityUtil.isAdmin()) {
+            c.setAuthorName(SecurityUtil.getAuthenticatedUser().getName());
+        } else {
+            c.setAuthorName(authorName);
+        }
+        
         c.setContent(params.getContent());
         c.setIsDeleted(0);
         c.setParentCommentId(params.getParentCommentId());
@@ -77,20 +83,24 @@ public class CommentService {
         c.setRefTable(params.getRefTable());
         c.setCreatedAt(AppUtil.getCurrentDateTime());
 
+        if (!SecurityUtil.isAdmin() && StringUtils.isNotEmpty(params.getPassword())) {
+            // 솔트 생성
+            byte[] salt = AppUtil.generateSalt();
+            
+            // 해싱
+            String hashedPassword = AppUtil.hashPassword(params.getPassword(), salt);
+            String saltBase64 = Base64.getEncoder().encodeToString(salt);
+            c.setSalt(saltBase64);
+            c.setPassword(hashedPassword);
+        }
         
-        // 솔트 생성
-        byte[] salt = AppUtil.generateSalt();
-        
-        // 해싱
-        String hashedPassword = AppUtil.hashPassword(params.getPassword(), salt);
-        String saltBase64 = Base64.getEncoder().encodeToString(salt);
-        c.setSalt(saltBase64);
-        c.setPassword(hashedPassword);
+        c.setIsAdmin(SecurityUtil.isAdmin() ? 1 : 0);
         
         commentRepository.save(c);
     }
 
     public void updateComment(UpdateCommentParams params, HttpServletRequest request) throws Exception {
+
         Optional<Comment> commentOpt = commentRepository.findById(params.getCommentId());
         if (commentOpt.isEmpty()) {
             throw new PostNotFoundException(String.format("존재하지 않는 댓글입니다.(%d)", params.getCommentId()));
@@ -98,15 +108,22 @@ public class CommentService {
         
         Comment c = commentOpt.get();
         
-        // 솔트를 디코딩
-        byte[] salt = Base64.getDecoder().decode(c.getSalt());
-        String hashedPassword = AppUtil.hashPassword(params.getPassword(), salt);
-        if (!hashedPassword.equals(c.getPassword())) {
-            throw new UnauthorizedException("댓글 비밀번호가 일치하지 않습니다.");
+        if (!SecurityUtil.isAdmin()) {
+            // 솔트를 디코딩
+            byte[] salt = Base64.getDecoder().decode(c.getSalt());
+            String hashedPassword = AppUtil.hashPassword(params.getPassword(), salt);
+            if (!hashedPassword.equals(c.getPassword())) {
+                throw new UnauthorizedException("댓글 비밀번호가 일치하지 않습니다.");
+            }
         }
         
         c.setEditorIp(AppUtil.getClientIpFromRequest(request));
-        c.setEditorName(c.getAuthorName());
+        if (SecurityUtil.isAdmin()) {
+            c.setEditorName(SecurityUtil.getAuthenticatedUser().getName());
+        } else {
+            c.setEditorName(c.getAuthorName());
+        }
+        
         c.setEditedAt(AppUtil.getCurrentDateTime());
         c.setContent(params.getContent());
         
@@ -121,15 +138,23 @@ public class CommentService {
         
         Comment c = commentOpt.get();
         
-        // 솔트를 디코딩
-        byte[] salt = Base64.getDecoder().decode(c.getSalt());
-        String hashedPassword = AppUtil.hashPassword(params.getPassword(), salt);
-        if (!hashedPassword.equals(c.getPassword())) {
-            throw new UnauthorizedException("댓글 비밀번호가 일치하지 않습니다.");
+        if (!SecurityUtil.isAdmin()) {
+            // 솔트를 디코딩
+            byte[] salt = Base64.getDecoder().decode(c.getSalt());
+            String hashedPassword = AppUtil.hashPassword(params.getPassword(), salt);
+            if (!hashedPassword.equals(c.getPassword())) {
+                throw new UnauthorizedException("댓글 비밀번호가 일치하지 않습니다.");
+            }
         }
         
+        
         c.setEditorIp(AppUtil.getClientIpFromRequest(request));
-        c.setEditorName(c.getAuthorName());
+        if (SecurityUtil.isAdmin()) {
+            c.setEditorName(SecurityUtil.getAuthenticatedUser().getName());
+        } else {
+            c.setEditorName(c.getAuthorName());
+        }
+
         c.setEditedAt(AppUtil.getCurrentDateTime());
         c.setIsDeleted(1);
         

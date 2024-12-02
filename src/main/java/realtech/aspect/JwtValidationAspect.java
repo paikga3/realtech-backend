@@ -34,7 +34,7 @@ public class JwtValidationAspect {
         for (Object arg : args) {
             if (arg instanceof BaseCommentRequest) {
                 BaseCommentRequest baseRequest = (BaseCommentRequest) arg;
-                JwtValidator.validateToken(token, baseRequest.getRefTable(), baseRequest.getRefId());
+                JwtValidator.validatePostToken(token, baseRequest.getRefTable(), baseRequest.getRefId());
                 return;
             }
         }
