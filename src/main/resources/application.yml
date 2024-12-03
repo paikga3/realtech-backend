@@ -25,7 +25,7 @@ spring:
     allow-bean-definition-overriding: true
   servlet:
     multipart:
-      max-file-size: 1MB    # 파일 하나의 최대 크기
+      max-file-size: 5MB    # 파일 하나의 최대 크기
       max-request-size: 10MB # 요청 전체의 최대 크기
 
 #  session:
