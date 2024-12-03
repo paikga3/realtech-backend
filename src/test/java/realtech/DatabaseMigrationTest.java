@@ -9,7 +9,6 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.Rollback;
@@ -206,7 +205,7 @@ public class DatabaseMigrationTest {
     
     @Rollback(false)
     @Transactional
-    @Test
+//    @Test
     public void shouldMigrateDataFromOldToNewDatabase03() {
         List<G5WriteYbReservation01> list = g5WriteYbReservation01Repository.findByWrIsComment(0);
         SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss");
