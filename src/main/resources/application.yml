@@ -9,7 +9,7 @@ spring:
     name: realtech
   jpa.open-in-view: false
   datasource:
-    jdbcUrl: jdbc:log4jdbc:mariadb://43.201.253.25:3306/realtech
+    jdbcUrl: jdbc:log4jdbc:mariadb://52.78.159.98:3306/realtech
     username: realtech
     password: tv1234
     driverClassName: net.sf.log4jdbc.sql.jdbcapi.DriverSpy
