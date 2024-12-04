@@ -63,10 +63,11 @@ public class CommentService {
     
     public void addComment(CreateCommentParams params, HttpServletRequest request) throws Exception {
         String authorName = StringUtils.isNotEmpty(params.getAuthorName()) ? params.getAuthorName() : "unknown";
-        if ("리얼테크".equals(authorName)) {
-            throw new UnauthorizedException("관리자 이름으로 댓글등록을 할 수 없습니다.");
+        if (!SecurityUtil.isAdmin()) {
+            if ("리얼테크".equals(authorName)) {
+                throw new UnauthorizedException("관리자 이름으로 댓글등록을 할 수 없습니다.");
+            }
         }
-        
         
         Comment c = new Comment();
         c.setAuthorIp(AppUtil.getClientIpFromRequest(request));

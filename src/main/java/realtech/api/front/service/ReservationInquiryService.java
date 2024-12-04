@@ -220,8 +220,10 @@ public class ReservationInquiryService {
     
     @Transactional
     public void createReservationInquiryPost(CreateReservationInquiryPostParams params, HttpServletRequest request) throws Exception {
-        if ("리얼테크".equals(params.getName())) {
-            throw new UnauthorizedException("관리자 이름으로 게시물을 등록할 수 없습니다.");
+        if (!SecurityUtil.isAdmin()) {
+            if ("리얼테크".equals(params.getName())) {
+                throw new UnauthorizedException("관리자 이름으로 게시물을 등록할 수 없습니다.");
+            }
         }
         
         List<Attachment> attachments = new ArrayList<>();
